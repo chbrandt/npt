@@ -1,2 +1,2 @@
 import sh
-isisshs = sh(_long_prefix="")
+isissh = sh(_long_prefix="")

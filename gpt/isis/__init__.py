@@ -4,4 +4,4 @@ from . import (format,
 
 from ._sh import isissh
 
-__all__ = ['isish', 'format', 'calibration', 'projection']
+__all__ = ['isissh', 'format', 'calibration', 'projection']
