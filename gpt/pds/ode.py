@@ -1,3 +1,5 @@
+import requests
+
 API_URL = 'https://oderest.rsl.wustl.edu/live2'
 
 DESCRIPTORS = {
@@ -29,7 +31,6 @@ DATASETS = {
 
 
 def request_product(PRODUCTID, api_endpoint):
-    import requests
     payload = dict(
         query='product',
         results='fmp',
@@ -50,7 +51,6 @@ def request_products(api_endpoint, bbox, target=None, host=None, instr=None, pty
     }
     'ptype' (eg, "rdrv11") is used only when 'instr' is also defined (e.g, "hirise").
     """
-    import requests
     payload = dict(
         query='product',
         results='fmpc',
@@ -109,18 +109,17 @@ def readout_product_meta(product_json):
     product['type'] = product_json['pt']
     return product
 
-    
+
 def requested_products(request):
     assert request.status_code == 200 and request.json()['ODEResults']['Status'].lower() == 'success'
     products = request.json()['ODEResults']['Products']['Product']
     assert isinstance(products, list), "Was expecting 'list', got '{}' instead".format(type(products))
     return products
-    
-    
+
+
 def find_product_file(product_files, product_type, descriptors=DESCRIPTORS):
     _key,_val = descriptors[product_type]
     pfl = list(filter(lambda pf:pf[_key]==_val, product_files))
     _multiple_matches = "I was expecting only one Product matching ptype '{}' bu got '{}'."
     assert len(pfl) == 1, _multiple_matches.format(product_type, len(pfl))
     return pfl[0]
-

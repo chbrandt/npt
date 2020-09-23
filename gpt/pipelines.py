@@ -1,4 +1,5 @@
 import ode
+
 class Search:
     """
     Namespace only
