@@ -4,7 +4,9 @@ Define commands and sub-commands line interface
 import click
 from click import argument,option
 
-from .utils.io import search
+from .search import bbox as search_bbox
+from .utils.io import json_2_geojson
+from .utils.formaters import bbox_string_2_dict
 
 
 @click.group()
@@ -16,7 +18,7 @@ def main():
 @argument('bbox')
 @argument('dataset')
 @option('--output', default='', help="GeoJSON filename with query results")
-def search(bbox,dataset,output):
+def search(bbox, dataset, output, server='ode'):
     """
     Query ODE for intersecting footprints to bbox.
 
@@ -26,14 +28,11 @@ def search(bbox,dataset,output):
     """
     dataset_id = dataset
 
-    _lbl = ['minlat','maxlat','westlon','eastlon']
-    _bbx = [float(c) for c in bbox.split(',')]
-    bounding_box = {k:v for k,v in zip(_lbl,_bbx)}
+    bounding_box = bbox_string_2_dict(bbox)
 
-    search = Search()
-    products = search.bbox(bbox=bounding_box, dataset=dataset_id)
+    products = search_bbox(bbox=bounding_box, dataset=dataset_id)
     if output:
-        search.write_geojson(products, filename=output)
+        json_2_geojson(products, filename=output)
     else:
         click.echo(products)
 
