@@ -1,11 +1,11 @@
-import ode
+# import ode
 
 class Search:
     """
     Namespace only
     """
     @staticmethod
-    def run(bounding_box, dataset_id, geojson_filename):
+    def query2geojson(bounding_box, dataset_id, geojson_filename):
         """
         Write GeoJSON with products intersecting 'bounding_box'
 
@@ -24,6 +24,7 @@ class Search:
         gdf = Search.write_geojson(products, filename=output_filename)
         return gdf
 
+    __call__ = query2geojson
 
     @staticmethod
     def query_footprints(bbox, dataset):
@@ -34,25 +35,34 @@ class Search:
         bbox: {'minlat': -0.5, 'maxlat': 0.5, 'westlon': 359.5, 'eastlon': 0.5}
         """
 
-        host,instr,ptype = dataset.split('/')
+        # host,instr,ptype = dataset.split('/')
+        #
+        # assert all(k in bbox for k in ('minlat','maxlat','westlon','eastlon')), (
+        #     "Expected 'bbox' with keys: 'minlat','maxlat','westlon','eastlon'"
+        # )
+        #
+        # req = ode.request_products(ode.API_URL, bbox=bbox, target='mars', host=host, instr=instr, ptype=ptype)
+        from .pds import ode.ODE as ODE
+        ode = ODE(dataset)
 
-        assert all(k in bbox for k in ('minlat','maxlat','westlon','eastlon')), (
-            "Expected 'bbox' with keys: 'minlat','maxlat','westlon','eastlon'"
-        )
+        req = ode.query_bbox(bbox)
 
-        req = ode.request_products(ode.API_URL, bbox=bbox, target='mars', host=host, instr=instr, ptype=ptype)
-
-        products = ode.requested_products(req)
+        # products = ode.requested_products(req)
+        products = ode.read_products(req)
 
         products_output = []
         for i,product in enumerate(products):
             _meta = ode.readout_product_meta(product)
             _files = ode.readout_product_files(product)
             _fprint = ode.readout_product_footprint(product)
-            _pfile = ode.find_product_file(product_files=_files, product_type='product_image', descriptors=ode.DESCRIPTORS[instr])
+            _pfile = ode.find_product_file(product_files=_files,
+                                           product_type='product_image',
+                                           descriptors=ode.DESCRIPTORS[instr])
             _pfile = _pfile['URL']
             try:
-                _lfile = ode.find_product_file(product_files=_files, product_type='product_label', descriptors=ode.DESCRIPTORS[instr])
+                _lfile = ode.find_product_file(product_files=_files,
+                                               product_type='product_label',
+                                               descriptors=ode.DESCRIPTORS[instr])
                 _lfile = _lfile['URL']
             except KeyError as err:
                 _lfile = _pfile
