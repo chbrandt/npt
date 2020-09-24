@@ -4,12 +4,13 @@ Define commands and sub-commands line interface
 import click
 from click import argument,option
 
-from .pipelines import Search
+from .utils.io import search
 
 
 @click.group()
 def main():
     pass
+
 
 @main.command()
 @argument('bbox')
@@ -30,10 +31,9 @@ def search(bbox,dataset,output):
     bounding_box = {k:v for k,v in zip(_lbl,_bbx)}
 
     search = Search()
-    products = search.query_footprints(bbox=bounding_box,
-                                       dataset=dataset_id)
+    products = search.bbox(bbox=bounding_box, dataset=dataset_id)
     if output:
-        gdf = search.write_geojson(products, filename=output)
+        search.write_geojson(products, filename=output)
     else:
         click.echo(products)
 
@@ -43,7 +43,6 @@ def download():
     pass
 
 # Command ISIS {format,calibrate,project}
-
 
 
 if __name__ == '__main__':
