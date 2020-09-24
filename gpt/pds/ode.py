@@ -16,18 +16,47 @@ DESCRIPTORS = {
     }
 }
 
-DATASETS = {
-    'ctx': {
-        'ptype': 'edr',
-        'instr': 'ctx',
-        'host': 'mro'
-    },
-    'hirise': {
-        'ptype': 'rdrv11',
-        'instr': 'hirise',
-        'host': 'mex'
-    }
-}
+
+class ODE:
+    _result = None
+    def __init__(self, dataset):
+        host,instr,ptype = dataset.split('/')
+        self.host = host
+        self.instr = instr
+        self.ptype = ptype
+
+    def query_bbox(self, bbox):
+        """
+        Return list of found products (in dictionaries)
+
+        dataset be like: 'mro/hirise/rdrv11'
+        bbox: {'minlat': -0.5, 'maxlat': 0.5, 'westlon': 359.5, 'eastlon': 0.5}
+        """
+
+        assert all(k in bbox for k in ('minlat','maxlat','westlon','eastlon')), (
+            "Expected 'bbox' with keys: 'minlat','maxlat','westlon','eastlon'"
+        )
+
+        req = request_products(bbox, self.target, self.host, self.instr, self.ptype)
+        result = request.json()
+        self._result = result
+        status = result['ODEResults']['Status']
+        if status != 'success':
+            print('oops, request failed. check `result`')
+        return self
+
+    def count(self):
+        if self._result is None:
+            return None
+        try:
+            cnt = self._result['Count']
+            return cnt
+        except:
+            return 0
+
+    def read_products(self, request):
+        products = requested_products(request)
+        return products
 
 
 def request_product(PRODUCTID, api_endpoint):
@@ -41,7 +70,7 @@ def request_product(PRODUCTID, api_endpoint):
     return requests.get(api_endpoint, params=payload)
 
 
-def request_products(api_endpoint, bbox, target=None, host=None, instr=None, ptype=None):
+def request_products(bbox, target=None, host=None, instr=None, ptype=None):
     """
     bbox = {
         'minlat': [-65:65],
@@ -51,6 +80,8 @@ def request_products(api_endpoint, bbox, target=None, host=None, instr=None, pty
     }
     'ptype' (eg, "rdrv11") is used only when 'instr' is also defined (e.g, "hirise").
     """
+    api_endpoint = API_URL
+
     payload = dict(
         query='product',
         results='fmpc',
