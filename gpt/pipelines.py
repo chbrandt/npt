@@ -1,4 +1,4 @@
-import ode
+# import ode
 
 class Search:
     """
@@ -34,15 +34,20 @@ class Search:
         bbox: {'minlat': -0.5, 'maxlat': 0.5, 'westlon': 359.5, 'eastlon': 0.5}
         """
 
-        host,instr,ptype = dataset.split('/')
+        # host,instr,ptype = dataset.split('/')
+        #
+        # assert all(k in bbox for k in ('minlat','maxlat','westlon','eastlon')), (
+        #     "Expected 'bbox' with keys: 'minlat','maxlat','westlon','eastlon'"
+        # )
+        #
+        # req = ode.request_products(ode.API_URL, bbox=bbox, target='mars', host=host, instr=instr, ptype=ptype)
+        from .pds import ode.ODE as ODE
+        ode = ODE(dataset)
 
-        assert all(k in bbox for k in ('minlat','maxlat','westlon','eastlon')), (
-            "Expected 'bbox' with keys: 'minlat','maxlat','westlon','eastlon'"
-        )
+        req = ode.query_bbox(bbox)
 
-        req = ode.request_products(ode.API_URL, bbox=bbox, target='mars', host=host, instr=instr, ptype=ptype)
-
-        products = ode.requested_products(req)
+        # products = ode.requested_products(req)
+        products = ode.read_products(req)
 
         products_output = []
         for i,product in enumerate(products):
