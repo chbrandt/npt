@@ -27,7 +27,8 @@ class Search:
     __call__ = query2geojson
 
     @staticmethod
-    def query_footprints(bbox, dataset):
+    def query_footprints(bbox, dataset=None,
+                         target='mars', host=None, instr=None, ptype=None):
         """
         Return list of found products (in dictionaries)
 
@@ -42,38 +43,22 @@ class Search:
         # )
         #
         # req = ode.request_products(ode.API_URL, bbox=bbox, target='mars', host=host, instr=instr, ptype=ptype)
-        from .pds import ode.ODE as ODE
-        ode = ODE(dataset)
+        from .pds.ode import ODE
+
+        if dataset:
+            target,host,instr,ptype = dataset.split('/')
+
+        ode = ODE(target,host,instr,ptype)
 
         req = ode.query_bbox(bbox)
 
         # products = ode.requested_products(req)
         products = ode.read_products(req)
 
-        products_output = []
-        for i,product in enumerate(products):
-            _meta = ode.readout_product_meta(product)
-            _files = ode.readout_product_files(product)
-            _fprint = ode.readout_product_footprint(product)
-            _pfile = ode.find_product_file(product_files=_files,
-                                           product_type='product_image',
-                                           descriptors=ode.DESCRIPTORS[instr])
-            _pfile = _pfile['URL']
-            try:
-                _lfile = ode.find_product_file(product_files=_files,
-                                               product_type='product_label',
-                                               descriptors=ode.DESCRIPTORS[instr])
-                _lfile = _lfile['URL']
-            except KeyError as err:
-                _lfile = _pfile
-            _dout = _meta
-            _dout['geometry'] = _fprint
-            _dout['image_url'] = _pfile
-            _dout['label_url'] = _lfile
-            products_output.append(_dout)
+        schema = {'meta':None, 'files':None, 'footprints':None}
+        products = ode.parse_products(products, schema)
+        return products
 
-        print("{} products found".format(len(products_output)))
-        return products_output
 
 
     @staticmethod

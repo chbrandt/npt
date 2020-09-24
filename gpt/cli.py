@@ -23,15 +23,17 @@ def search(bbox,dataset,output):
 
     Datasets identifiers. Options are 'mro/ctx/edr', 'mro/hirise/rdrv11'.
     """
+    dataset_id = dataset
+
     _lbl = ['minlat','maxlat','westlon','eastlon']
     _bbx = [float(c) for c in bbox.split(',')]
-    bounding_box = {k:v for k,v in zip(_lbl,_bbx)} 
-    dataset_id = dataset
-    _search = Search()
-    products = _search.query_footprints(bbox=bounding_box,
+    bounding_box = {k:v for k,v in zip(_lbl,_bbx)}
+
+    search = Search()
+    products = search.query_footprints(bbox=bounding_box,
                                        dataset=dataset_id)
     if output:
-        gdf = Search.write_geojson(products, filename=output)
+        gdf = search.write_geojson(products, filename=output)
     else:
         click.echo(products)
 
