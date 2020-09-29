@@ -1,6 +1,9 @@
 """
 Datasets dynamic import
 """
+# Refs:
+# - https://packaging.python.org/guides/creating-and-discovering-plugins/
+# - https://stackoverflow.com/a/64124377/687896
 import sys
 import pkgutil
 import importlib
