@@ -1,7 +1,10 @@
+"""
+Search interface:
+- for (products)
+- at (ODE)
+- by (location)
+"""
 
-"""
-Namespace only
-"""
 @staticmethod
 def query2geojson(bounding_box, dataset_id, geojson_filename):
     """
@@ -24,20 +27,29 @@ def query2geojson(bounding_box, dataset_id, geojson_filename):
 
 __call__ = query2geojson
 
-def bbox(bbox, dataset=None,
+def bbox(bbox, dataset=None, facility=None,
          target='mars', host=None, instr=None, ptype=None):
     """
     Return list of found products (in dictionaries)
 
-    dataset be like: 'mro/hirise/rdrv11'
+    dataset be like: 'mars/mro/hirise/rdrv11'
     bbox: {'minlat': -0.5, 'maxlat': 0.5, 'westlon': 359.5, 'eastlon': 0.5}
     """
     from .pds.ode import ODE
+
+    if facility.lower() != 'ode':
+        msg = "'{facility}' not implemented. Check 'gpt.interfaces'."
+        raise NotImplementedError(msg.format(facility=facility))
 
     if dataset:
         target,host,instr,ptype = dataset.split('/')
 
     ode = ODE(target,host,instr,ptype)
+
+    # Interface design
+    # ode.search._by(bbox)._parse(schema)
+    # ode.search._by(bbox)._for(products)
+    # ---
 
     req = ode.query_bbox(bbox)
 

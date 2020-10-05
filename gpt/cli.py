@@ -18,19 +18,19 @@ def main():
 @argument('bbox')
 @argument('dataset')
 @option('--output', default='', help="GeoJSON filename with query results")
-def search(bbox, dataset, output, server='ode'):
+def search(bbox, dataset, output, provider='ode'):
     """
     Query ODE for intersecting footprints to bbox.
 
-    BBOX format: 'min,max,west,east' (positive east [0:360])
+    BBOX format: '[min,max,west,east]' (positive east [0:360])
 
-    Datasets identifiers. Options are 'mro/ctx/edr', 'mro/hirise/rdrv11'.
+    Datasets identifiers. Options are 'mars/mro/ctx/edr', 'mars/mro/hirise/rdrv11'.
     """
     dataset_id = dataset
 
     bounding_box = bbox_string_2_dict(bbox)
 
-    products = search_bbox(bbox=bounding_box, dataset=dataset_id)
+    products = search_bbox(bbox=bounding_box, dataset=dataset_id) #, provider)
     if output:
         json_2_geojson(products, filename=output)
     else:

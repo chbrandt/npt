@@ -1,5 +1,8 @@
 import requests
 
+from gpt import query
+from gpt import datasets
+
 API_URL = 'https://oderest.rsl.wustl.edu/live2'
 
 DESCRIPTORS = {
@@ -17,13 +20,38 @@ DESCRIPTORS = {
 }
 
 
-class ODE:
+DB_ID = 'usgs_ode'
+
+class ODEQuery(query.Query):
     _result = None
-    def __init__(self, target, host, instr, ptype):
+    def __init__(self):
+        super().__init__()
+
+    def list_datasets(self):
+        # return datasets.ode.list()
+        _datasets = datasets.db.query("""
+            SELECT * FROM datasets WHERE db_id == '{db_id}'
+            """.format(db_id=DB_ID))
+
+    def set_dataset(self, target, host, instr, ptype, dataset=None):
+        """
+        Args:
+            target:
+            host:
+            instr:
+            ptype:
+
+        Returns:
+            ODE
+        """
+        if dataset is None:
+            msg = "Either set 'dataset' or all the others."
+            assert all(target, host, instr, ptype), msg
         self.host = host
         self.instr = instr
         self.ptype = ptype
         self.target = target
+        return self
 
     def query_bbox(self, bbox):
         """
@@ -75,6 +103,7 @@ class ODE:
                 _lfile = _lfile['URL']
             except KeyError as err:
                 _lfile = _pfile
+
             _dout = _meta
             _dout['geometry'] = _fprint
             _dout['image_url'] = _pfile
