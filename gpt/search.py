@@ -1,3 +1,4 @@
+
 """
 Search interface:
 - for (products)
@@ -5,29 +6,29 @@ Search interface:
 - by (location)
 """
 
-@staticmethod
-def query2geojson(bounding_box, dataset_id, geojson_filename):
-    """
-    Write GeoJSON with products intersecting 'bounding_box'
+# @staticmethod
+# def query2geojson(bounding_box, dataset_id, geojson_filename):
+#     """
+#     Write GeoJSON with products intersecting 'bounding_box'
+#
+#     Inputs:
+#     * bounding_box:
+#         Dictionary with 'minlat','maxlat','westlon','eastlon' keys;
+#         Longitues range is [0:360] (180 center).
+#     * dataset_id:
+#         Datasets identifiers. Options are 'mro/ctx/edr', 'mro/hirise/rdrv11'.
+#     * geojson_filename:
+#         Filename for the GeoJSON containing found products as Features.
+#     """
+#     output_filename = geojson_filename
+#     products = Search.query_footprints(bbox=bounding_box,
+#                                        dataset=dataset_id)
+#     gdf = Search.write_geojson(products, filename=output_filename)
+#     return gdf
+#
+# __call__ = query2geojson
 
-    Inputs:
-    * bounding_box:
-        Dictionary with 'minlat','maxlat','westlon','eastlon' keys;
-        Longitues range is [0:360] (180 center).
-    * dataset_id:
-        Datasets identifiers. Options are 'mro/ctx/edr', 'mro/hirise/rdrv11'.
-    * geojson_filename:
-        Filename for the GeoJSON containing found products as Features.
-    """
-    output_filename = geojson_filename
-    products = Search.query_footprints(bbox=bounding_box,
-                                       dataset=dataset_id)
-    gdf = Search.write_geojson(products, filename=output_filename)
-    return gdf
-
-__call__ = query2geojson
-
-def bbox(bbox, dataset=None, facility=None,
+def bbox(bbox, dataset=None, provider=None,
          target='mars', host=None, instr=None, ptype=None):
     """
     Return list of found products (in dictionaries)
@@ -37,7 +38,7 @@ def bbox(bbox, dataset=None, facility=None,
     """
     from .pds.ode import ODE
 
-    if facility.lower() != 'ode':
+    if provider.lower() != 'ode':
         msg = "'{facility}' not implemented. Check 'gpt.interfaces'."
         raise NotImplementedError(msg.format(facility=facility))
 
