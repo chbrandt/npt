@@ -28,7 +28,8 @@ Search interface:
 #
 # __call__ = query2geojson
 
-def bbox(bbox, dataset=None, provider=None,
+def bbox(bbox, dataset=None,
+         provider=None,
          target='mars', host=None, instr=None, ptype=None):
     """
     Return list of found products (in dictionaries)
