@@ -76,4 +76,4 @@ class Datasets(object):
         gpt.db.insert_record(_sql_insert_dataset_record)
 
 
-datasets = Datasets(_datasets)
+# datasets = Datasets(_datasets)

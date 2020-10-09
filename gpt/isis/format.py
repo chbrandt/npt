@@ -2,9 +2,10 @@ from ._sh import isissh
 
 def pds2isis(filename_in, filename_out):
     # CTX:
-    isissh.mroctx2isis(FROM=filename_in, TO=filename_out)
-    return
+    return isissh.mroctx2isis(FROM=filename_in, TO=filename_out)
 
 def init_spice(filename):
-    isissh.spiceinit(FROM=filename)
-    return
+    return isissh.spiceinit(FROM=filename)
+
+def isis2tiff(filename_in, filename_out):
+    return isissh(FROM=filename_in, TO=filename_out, FORMAT='TIFF')

@@ -194,12 +194,16 @@ class Processing:
 
             # MAP-PROJECTION
             from gpt.isis import projection
+            ## Define projection
             f_map = _add_file_subextension(f_cal, 'map')
             _flist = [f_cal]
             proj_file = projection.define_projection(_flist, projection=projection, tmpdir=tmpdir)
+            ## Project
             projection.map_project(f_cal, f_map, proj_file)
 
             # FORMAT to TIFF
+            f_tif = _change_file_extension(f_map, 'tif')
+            format.isis2tiff(f_map, f_tif)
 
         except Exception as err:
             print("OOOPS, something went wrong.")
@@ -209,17 +213,17 @@ class Processing:
             shutil.rmtree(tmpdir)
 
 
-        #calibration (radiometry)
-        #projection (image->map)
-        # SUBPRODUCTS (for future processing)
-        # ----------------------
-        #format (isis->tiff in 4326
-        try:
-            Processing.proj_planet2earth(filetmp, fileout)
-        except:
-            print("oops")
-        # HIGH_LEVEL PRODUCTS (for visualization)
-        return fileout
+        # #calibration (radiometry)
+        # #projection (image->map)
+        # # SUBPRODUCTS (for future processing)
+        # # ----------------------
+        # #format (isis->tiff in 4326
+        # try:
+        #     Processing.proj_planet2earth(filetmp, fileout)
+        # except:
+        #     print("oops")
+        # # HIGH_LEVEL PRODUCTS (for visualization)
+        # return fileout
 
     @staticmethod
     def proj_planet2earth(filein, fileout):
