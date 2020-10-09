@@ -18,6 +18,7 @@ def main():
 @argument('bbox')
 @argument('dataset')
 @option('--output', default='', help="GeoJSON filename with query results")
+@option('--provider', default='ode', help="Choose interface/provider to query")
 def search(bbox, dataset, output, provider='ode'):
     """
     Query ODE for intersecting footprints to bbox.
@@ -30,7 +31,9 @@ def search(bbox, dataset, output, provider='ode'):
 
     bounding_box = bbox_string_2_dict(bbox)
 
-    products = search_bbox(bbox=bounding_box, dataset=dataset_id) #, provider)
+    products = search_bbox(bbox=bounding_box,
+                           dataset=dataset_id,
+                           provider=provider)
     if output:
         json_2_geojson(products, filename=output)
     else:
