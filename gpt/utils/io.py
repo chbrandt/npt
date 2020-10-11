@@ -1,4 +1,15 @@
-def json_2_geodataframe(records):
+def read_geojson(filename):
+    """
+    Return 'features' from GeoJSON
+    """
+    import json
+    with open(filename, 'r') as fp:
+        js = json.load(fp)
+        features = js['features']
+    return features
+    
+
+def geojson_2_geodataframe(records):
     import geopandas as gpd
     import shapely
     assert isinstance(records, list), "Expected a list [{}], instead got {}".format(type(records))
@@ -12,7 +23,7 @@ def json_2_geodataframe(records):
     return gdf
 
 
-def json_2_geojson(products, filename):
+def products_2_geojson(products, filename):
     """
     Write products to a GeoJSON 'filename'. Return GeoPandas dataframe.
 
@@ -25,8 +36,10 @@ def json_2_geojson(products, filename):
     assert isinstance(products, list), "Expected 'products' to be a list"
     assert filename and filename.strip() != '', "Give me a valid filename"
 
-    gdf = json_2_geodataframe(products)
+    gdf = geojson_2_geodataframe(products)
 
     gdf.to_file(filename, driver='GeoJSON')
     print("File '{}' written.".format(filename))
     return
+
+json_2_geojson = products_2_geojson

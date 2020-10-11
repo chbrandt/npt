@@ -9,7 +9,7 @@ class Query(object):
     """
     _result = None
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__()
 
     @property
@@ -22,5 +22,3 @@ class Query(object):
     @property
     def products(self):
         NotImplementedError("This is a base query object, you should not be here.")
-
-    

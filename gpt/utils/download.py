@@ -1,10 +1,8 @@
 import os
 import sys
 import shutil
-import requests
 
-from ode import request_product
-from ode import find_product_file
+import requests
 
 
 def download_file_silent(url, filename):
@@ -49,11 +47,19 @@ def download_file_progress(url, filename, verbose=False):
     return
 
 
-def download_file(url, filename=None, progress_on=False):
+def download_file(url, filename=None, progress_on=False, make_dirs=True):
     if not filename:
         local_filename = os.path.join('.', url.split('/')[-1])
     else:
         local_filename = filename
+
+    _path = os.path.dirname(local_filename)
+    if not os.path.isdir(_path):
+        if make_dirs:
+            os.makedirs(_path, exist_ok=True)
+        else:
+            print("Path '{}' does not exist.".format(_path))
+            return None
 
     print('--> Downloading file {} ..'.format(local_filename))
     if progress_on:
@@ -70,10 +76,13 @@ def download_files(urls, descriptors, filenames=None, path=None, progress_on=Fal
     assert isinstance(descriptors, (list, tuple))
     assert len(urls) == len(descriptors)
 
-    if not filenames:
-        path = path.strip() if path != None and len(path.strip()) > 0 else '.'
-        filenames = [os.path.join(path, url.split('/')[-1]) for url in urls]
+    if path and path.strip():
+        os.makedirs(path)
+    else:
+        path = '.'
 
+    if not filenames:
+        filenames = [os.path.join(path, url.split('/')[-1]) for url in urls]
     assert len(filenames) == len(urls), "List of 'filenames' must match length of 'urls'"
 
     files_downloaded = {}
@@ -81,13 +90,17 @@ def download_files(urls, descriptors, filenames=None, path=None, progress_on=Fal
         try:
             _fn = download_file(url, filename, progress_on)
             files_downloaded[descriptor] = _fn
-        except:
-            pass
+        except Exception as err:
+            print(err)
+            print("If, moving next")
 
     return files_downloaded
 
 
 def get_product(product_id, file_types, descriptors, api_endpoint, path=None, progress_on=True):
+    from ode import request_product
+    from ode import find_product_file
+
     pid = product_id
 
     base_path = path or '.'

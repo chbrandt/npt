@@ -22,10 +22,11 @@ DESCRIPTORS = {
 
 DB_ID = 'usgs_ode'
 
-class ODEQuery(query.Query):
+class ODE(query.Query):
     _result = None
-    def __init__(self):
+    def __init__(self, target, mission, instrument, product_type):
         super().__init__()
+        self.set_dataset(target, mission, instrument, product_type)
 
     def list_datasets(self):
         # return datasets.ode.list()
@@ -46,7 +47,7 @@ class ODEQuery(query.Query):
         """
         if dataset is None:
             msg = "Either set 'dataset' or all the others."
-            assert all(target, host, instr, ptype), msg
+            assert all([target, host, instr, ptype]), msg
         self.host = host
         self.instr = instr
         self.ptype = ptype
@@ -114,6 +115,7 @@ class ODEQuery(query.Query):
         return products_output
 
 
+# ODEQuery.read_products
 def read_products(request):
     assert request.status_code == 200 and request.json()['ODEResults']['Status'].lower() == 'success'
     products = request.json()['ODEResults']['Products']['Product']
@@ -121,17 +123,7 @@ def read_products(request):
     return products
 
 
-def request_product(PRODUCTID, api_endpoint):
-    payload = dict(
-        query='product',
-        results='fmp',
-        output='JSON',
-        productid=PRODUCTID
-    )
-    #payload.update({'pretty':True})
-    return requests.get(api_endpoint, params=payload)
-
-
+# USED by 'query_bbox'
 def request_products(bbox, target=None, host=None, instr=None, ptype=None):
     """
     bbox = {
@@ -166,16 +158,13 @@ def request_products(bbox, target=None, host=None, instr=None, ptype=None):
     return requests.get(api_endpoint, params=payload)
 
 
-def requested_product_files(request):
-    product_files = request.json()['ODEResults']['Products']['Product']['Product_files']['Product_file']
-    return product_files
-
-
+# USED by 'parse_products'
 def readout_product_files(product_json):
     product_files = product_json['Product_files']['Product_file']
     return product_files
 
 
+# USED by 'parse_products'
 def readout_product_footprint(product_json):
     # 'Footprint_geometry' and 'Footprint_C0_geometry' may contain 'GEOMETRYCOLLECTION'
     # when the footprint cross the meridian in "c180" or "c0" frames
@@ -185,11 +174,7 @@ def readout_product_footprint(product_json):
     return product_geom
 
 
-#
-#TODO: ler uma lista de produtos: foreach product in "['ODEResults']['Products']"
-#
-
-
+# USED by 'parse_products'
 def readout_product_meta(product_json):
     product = {}
     # <pdsid>ESP_011712_1820_COLOR</pdsid>
@@ -203,9 +188,27 @@ def readout_product_meta(product_json):
     return product
 
 
+# USED by 'parse_products'
 def find_product_file(product_files, product_type, descriptors=DESCRIPTORS):
     _key,_val = descriptors[product_type]
     pfl = list(filter(lambda pf:pf[_key]==_val, product_files))
     _multiple_matches = "I was expecting only one Product matching ptype '{}' bu got '{}'."
     assert len(pfl) == 1, _multiple_matches.format(product_type, len(pfl))
     return pfl[0]
+
+
+# USED by 'download.get_product'
+def request_product(PRODUCTID, api_endpoint):
+    payload = dict(
+        query='product',
+        results='fmp',
+        output='JSON',
+        productid=PRODUCTID
+    )
+    #payload.update({'pretty':True})
+    return requests.get(api_endpoint, params=payload)
+
+
+# def requested_product_files(request):
+#     product_files = request.json()['ODEResults']['Products']['Product']['Product_files']['Product_file']
+#     return product_files

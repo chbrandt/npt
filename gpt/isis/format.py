@@ -8,4 +8,4 @@ def init_spice(filename):
     return isissh.spiceinit(FROM=filename)
 
 def isis2tiff(filename_in, filename_out):
-    return isissh(FROM=filename_in, TO=filename_out, FORMAT='TIFF')
+    return isissh.isis2std(FROM=filename_in, TO=filename_out, FORMAT='TIFF')

@@ -1,4 +1,4 @@
-# import ode
+import os
 
 class Search:
     """
@@ -94,7 +94,7 @@ class Search:
 
 class Download:
     @staticmethod
-    def run(product_feature, base_path, progressbar=False):
+    def _run_geo_feature(geojson_feature, base_path, progressbar=False):
         """
         Download data products (Image, Label) inside 'base_path'
 
@@ -108,40 +108,51 @@ class Download:
         * progressbar (False):
             If a (tqdm) progress-bar should show download progress
         """
+        product_feature = geojson_feature
+
         assert base_path, "Expected a valid path, got '{}' instead".format(base_path)
 
-        _properties = product_feature['properties']
-
-        image_url = _properties['image_url']
-        image_path = Download.download(image_url,
-                                       basepath=base_path,
-                                       progressbar=progressbar)
-        if image_path:
-            _properties['image_path'] = image_path
-
-        if ('label_url' in _properties
-            and _properties['label_url'] != _properties['image_url']):
-            label_url = _properties['label_url']
-            label_path = Download.download(label_url,
-                                           basepath=base_path,
-                                           progressbar=progressbar)
-            if label_path:
-                _properties['label_path'] = label_path
+        properties = product_feature['properties']
+        properties = Download.run_props(properties, base_path, progressbar)
+        product_feature['properties'] = properties
 
         return product_feature
+
+    run = _run_geo_feature
+
+
+    @staticmethod
+    def run_props(properties, base_path, progressbar=False):
+        properties = properties.copy()
+
+        image_url = properties['image_url']
+        image_path = Download.download(image_url, basepath=base_path,
+                                                  progressbar=progressbar)
+        if image_path:
+            properties['image_path'] = image_path
+
+        if ('label_url' in properties
+            and properties['label_url'] != properties['image_url']):
+            label_url = properties['label_url']
+            label_path = Download.download(label_url, basepath=base_path,
+                                                      progressbar=progressbar)
+            if label_path:
+                properties['label_path'] = label_path
+
+        return properties
 
 
     @staticmethod
     def download(url, basepath, progressbar=False):
-        from download import download_file
+        from .utils.download import download_file
         import os
+
         _file = url.split('/')[-1]
         file_path = os.path.join(basepath, _file)
-        try:
-            download_file(url, filename=file_path, progress_on=progressbar)
-            return file_path
-        except:
-            return None
+        _out = download_file(url, filename=file_path, progress_on=progressbar)
+
+        return file_path
+
 
 
 def _change_file_extension(filename, new_ext):
@@ -152,6 +163,10 @@ def _add_file_subextension(filename, sub_ext):
     fs.insert(-1, sub_ext)
     fn = '.'.join(fs)
     return fn
+def _change_file_dirname(filename, new_dir):
+    bn = os.path.basename(filename)
+    fn = os.path.join(new_dir, bn)
+    return fn
 
 class Processing:
     """
@@ -160,7 +175,21 @@ class Processing:
     Don't forget init-spice!
     """
     @staticmethod
-    def run(filename_init, filename_result, projection="sinusoidal", tmpdir=None):
+    def _run_geo_feature(geojson_feature, output_path, projection="sinusoidal", tmpdir=None):
+        feature = geojson_feature.copy()
+        result_filename = Processing._run_props(feature['properties'], output_path)
+        return feature
+
+    run = _run_geo_feature
+
+    @staticmethod
+    def _run_props(properties, output_path, map_projection, tmpdir):
+        image_filename = properties['image_path']
+        output = Processing.run_file(image_filename, output_path, map_projection, tmpdir)
+
+
+    @staticmethod
+    def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None):
         # Create a temp dir for the processing
         import shutil
         import tempfile
@@ -181,11 +210,11 @@ class Processing:
 
             # FORMAT (pds->isis)
             from gpt.isis import format
-            # -- Init SPICE kernel
-            format.init_spice(f_in)
             # -- Transfrom PDS (IMG) into ISIS (CUB) file
             f_cub = _change_file_extension(f_in, 'cub')
             format.pds2isis(f_in, f_cub)
+            # -- Init SPICE kernel
+            format.init_spice(f_cub)
 
             # CALIBRATION
             from gpt.isis import calibration
@@ -197,7 +226,7 @@ class Processing:
             ## Define projection
             f_map = _add_file_subextension(f_cal, 'map')
             _flist = [f_cal]
-            proj_file = projection.define_projection(_flist, projection=projection, tmpdir=tmpdir)
+            proj_file = projection.define_projection(_flist, projection=map_projection, tmpdir=tmpdir)
             ## Project
             projection.map_project(f_cal, f_map, proj_file)
 
@@ -208,22 +237,22 @@ class Processing:
         except Exception as err:
             print("OOOPS, something went wrong.")
             raise err
+        else:
+            print("Processing finished, file '{}' created.".format(f_tif))
+
+        try:
+            print("Copying from temp to archive/output path")
+            f_out =  _change_file_dirname(f_tif, output_path)
+            shutil.move(f_tif, f_out)
+        except Exception as err:
+            print("File '{}' could not be moved to '{}'".format(f_tif, f_out))
+            print("Temporary files, '{}' will remain. Remove them manually.".format(tmpdir))
+            raise err
         finally:
             print("Cleaning temporary files/directory ({})".format(tmpdir))
             shutil.rmtree(tmpdir)
 
-
-        # #calibration (radiometry)
-        # #projection (image->map)
-        # # SUBPRODUCTS (for future processing)
-        # # ----------------------
-        # #format (isis->tiff in 4326
-        # try:
-        #     Processing.proj_planet2earth(filetmp, fileout)
-        # except:
-        #     print("oops")
-        # # HIGH_LEVEL PRODUCTS (for visualization)
-        # return fileout
+        return f_out
 
     @staticmethod
     def proj_planet2earth(filein, fileout):
