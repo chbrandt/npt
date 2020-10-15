@@ -1,9 +1,7 @@
-# filein = 'rasterio/tests/data/RGB.byte.tif'
-# fileout = '/tmp/RGB.byte.wgs84.tif'
-# dst_crs = 'EPSG:4326'
+import rasterio as rio
+
 def warp(fileinname, fileoutname, dst_crs='EPSG:4326'):
     import numpy as np
-    import rasterio
     from rasterio.warp import calculate_default_transform, reproject, Resampling
 
     with rasterio.open(fileinname) as src:
@@ -29,3 +27,24 @@ def warp(fileinname, fileoutname, dst_crs='EPSG:4326'):
                     resampling=Resampling.nearest)
     print('Done.')
     return
+
+
+def to_tiff(filename_in, filename_out, format_in):
+    """
+    For accepted formats (in): https://gdal.org/drivers/raster/index.html
+    """
+    format_out = 'GTiff'
+    format_in = 'ISIS3' if format_in == 'ISIS' else format_in
+    try:
+        src = rio.open(filename_in, 'r', driver=format_in)
+        data = src.read()
+        params = src.meta
+        params['driver'] = format_out
+        dst = rio.open(filename_out, 'w', **params)
+        dst.write(data)
+        src.close()
+        dst.close()
+    except Exception as err:
+        raise err
+        return None
+    return filename_out
