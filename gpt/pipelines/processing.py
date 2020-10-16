@@ -3,8 +3,8 @@ import os
 from . import log
 
 from ..utils.filenames import change_extension as _change_file_extension
-from ..utils.filenames import change_diname as _add_file_subextension
-from ..utils.filenames import insert_preext as _change_file_dirname
+from ..utils.filenames import change_dirname as _change_file_dirname
+from ..utils.filenames import insert_preext as _add_file_subextension
 
 
 def proj_planet2earth(filein, fileout):

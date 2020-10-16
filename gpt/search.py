@@ -29,7 +29,7 @@ Search interface:
 # __call__ = query2geojson
 
 def bbox(bbox, dataset=None,
-         provider=None,
+         provider=None, contains=False,
          target='mars', host=None, instr=None, ptype=None):
     """
     Return list of found products (in dictionaries)
@@ -37,7 +37,7 @@ def bbox(bbox, dataset=None,
     dataset be like: 'mars/mro/hirise/rdrv11'
     bbox: {'minlat': -0.5, 'maxlat': 0.5, 'westlon': 359.5, 'eastlon': 0.5}
     """
-    from .pds.ode import ODE
+    from gpt.pds.ode import ODE
 
     if provider.lower() != 'ode':
         msg = "'{facility}' not implemented. Check 'gpt.interfaces'."
@@ -53,13 +53,14 @@ def bbox(bbox, dataset=None,
     # ode.search._by(bbox)._for(products)
     # ---
 
-    req = ode.query_bbox(bbox)
+    req = ode.query_bbox(bbox, contains=contains)
 
     # products = ode.requested_products(req)
     products = ode.read_products(req)
 
-    schema = {'meta':None, 'files':None, 'footprints':None}
-    products = ode.parse_products(products, schema)
+    if products:
+        schema = {'meta':None, 'files':None, 'footprints':None}
+        products = ode.parse_products(products, schema)
     return products
 
 

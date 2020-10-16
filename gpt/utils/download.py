@@ -6,6 +6,16 @@ import requests
 
 from . import log
 
+def _is_downloaded(url, filename):
+    if not os.path.isfile(filename):
+        return False
+
+    r = requests.get(url, stream=True)
+    remote_size = r.headers['Content-Length']
+    local_size = os.path.getsize(filename)
+    return local_size == remote_size
+
+
 def download_file_silent(url, filename):
     """
     Download file (silently)
@@ -13,10 +23,15 @@ def download_file_silent(url, filename):
     Usage:
         download_file_silent('http://web4host.net/5MB.zip', 'local_filename.zip')
     """
-    r = requests.get(url)
-    with open(filename,'wb') as f:
-        f.write(r.content)
-    return
+    try:
+        r = requests.get(url)
+        with open(filename,'wb') as f:
+            f.write(r.content)
+    except Exception as err:
+        log.error(err)
+        return False
+
+    return True
 
 
 def download_file_progress(url, filename, verbose=False):
@@ -27,25 +42,30 @@ def download_file_progress(url, filename, verbose=False):
         download_file_progress('http://web4host.net/5MB.zip', 'local_filename.zip')
     """
     import tqdm
-    r = requests.get(url, stream=True)
-    file_size = int(r.headers['Content-Length'])
-    chunk = 1
-    chunk_size=1024
-    num_bars = int(file_size / chunk_size)
-    if verbose:
-        print(dict(file_size=file_size))
-        print(dict(num_bars=num_bars))
+    try:
+        r = requests.get(url, stream=True)
+        file_size = int(r.headers['Content-Length'])
+        chunk = 1
+        chunk_size=1024
+        num_bars = int(file_size / chunk_size)
+        if verbose:
+            print(dict(file_size=file_size))
+            print(dict(num_bars=num_bars))
 
-    with open(filename, 'wb') as fp:
-        for chunk in tqdm.tqdm(
-                                    r.iter_content(chunk_size=chunk_size)
-                                    , total= num_bars
-                                    , unit = 'KB'
-                                    , desc = filename
-                                    , leave = True # progressbar stays
-                                ):
-            fp.write(chunk)
-    return
+        with open(filename, 'wb') as fp:
+            for chunk in tqdm.tqdm(
+                                        r.iter_content(chunk_size=chunk_size)
+                                        , total= num_bars
+                                        , unit = 'KB'
+                                        , desc = filename
+                                        , leave = True # progressbar stays
+                                    ):
+                fp.write(chunk)
+    except Exception as err:
+        log.error(err)
+        return False
+
+    return True
 
 
 def download_file(url, filename=None, progress_on=False, make_dirs=True):
@@ -53,6 +73,10 @@ def download_file(url, filename=None, progress_on=False, make_dirs=True):
         local_filename = os.path.join('.', url.split('/')[-1])
     else:
         local_filename = filename
+
+    if _is_downloaded(url, local_filename):
+        log.debug("File '{}' from '{}' already downloaded".format(local_filename, url))
+        return local_filename
 
     _path = os.path.dirname(local_filename)
     if not os.path.isdir(_path):

@@ -1,5 +1,6 @@
 import requests
 
+from gpt import log
 from gpt import query
 from gpt import datasets
 
@@ -54,7 +55,7 @@ class ODE(query.Query):
         self.target = target
         return self
 
-    def query_bbox(self, bbox):
+    def query_bbox(self, bbox, contains=False):
         """
         Return list of found products (in dictionaries)
 
@@ -66,7 +67,7 @@ class ODE(query.Query):
             "Expected 'bbox' with keys: 'minlat','maxlat','westlon','eastlon'"
         )
 
-        req = request_products(bbox, self.target, self.host, self.instr, self.ptype)
+        req = request_products(bbox, self.target, self.host, self.instr, self.ptype, contains=contains)
         result = req.json()
         self._result = result
         status = result['ODEResults']['Status']
@@ -118,13 +119,17 @@ class ODE(query.Query):
 # ODEQuery.read_products
 def read_products(request):
     assert request.status_code == 200 and request.json()['ODEResults']['Status'].lower() == 'success'
-    products = request.json()['ODEResults']['Products']['Product']
-    assert isinstance(products, list), "Was expecting 'list', got '{}' instead".format(type(products))
+    try:
+        products = request.json()['ODEResults']['Products']['Product']
+        assert isinstance(products, list), "Was expecting 'list', got '{}' instead".format(type(products))
+    except:
+        log.info("No products were found")
+        products = None
     return products
 
 
 # USED by 'query_bbox'
-def request_products(bbox, target=None, host=None, instr=None, ptype=None):
+def request_products(bbox, target=None, host=None, instr=None, ptype=None, contains=False):
     """
     bbox = {
         'minlat': [-65:65],
@@ -154,6 +159,9 @@ def request_products(bbox, target=None, host=None, instr=None, ptype=None):
         payload.update({'iid':instr})
         if ptype:
             payload.update({'pt':ptype})
+    if contains:
+        payload.update({'loc':'o'})
+
     #payload.update({'pretty':True})
     return requests.get(api_endpoint, params=payload)
 

@@ -8,11 +8,21 @@ from . import log
 def geojson_2_geodataframe(records):
     assert isinstance(records, list), "Expected a list [{}], instead got {}".format(type(records))
     for rec in records:
-        try:
-            rec['geometry'] = shapely.wkt.loads(rec['geometry'])
-        except TypeError as err:
-            print("Error in: ", rec)
-            raise err
+        geom = rec['geometry']
+        if isinstance(geom, str):
+            try:
+                # rec['geometry'] = shapely.wkt.loads(rec['geometry'])
+                geom = shapely.wkt.loads(geom)
+            except Exception as err:
+                log.error(err)
+                raise err
+        else:
+            try:
+                geom = shapely.geometry.asShape(geom)
+            except Exception as err:
+                log.error(err)
+                raise err
+        rec['geometry'] = geom
     gdf = gpd.GeoDataFrame(records)
     return gdf
 
