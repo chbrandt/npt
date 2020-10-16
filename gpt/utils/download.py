@@ -6,13 +6,68 @@ import requests
 
 from . import log
 
+# === Inspect functions
+# ref: https://fabianlee.org/2019/09/22/python-using-a-custom-decorator-to-inspect-function-arguments/
+#
+import functools
+import inspect
+
+def logintrospect(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        inspect_decorator(func, args, kwargs)
+        result = func(*args, **kwargs)
+        print("-return " + str(result))
+        return result
+    return wrapper
+
+
+def inspect_decorator(func,args,kwargs):
+  funcname = func.__name__
+  print("function {}()".format(funcname))
+
+  # get description of function params expected
+  argspec = inspect.getargspec(func)
+
+  # go through each position based argument
+  counter = 0
+  if argspec.args and type(argspec.args is list):
+    for arg in args:
+      # when you run past the formal positional arguments
+      try:
+        print("*" + str(argspec.args[counter]) + " = " + str(arg))
+        counter+=1
+      except IndexError as e:
+        # then fallback to using the positional varargs name
+        if argspec.varargs:
+          varargsname = argspec.varargs
+          print("*" + varargsname + " = " + str(arg))
+        pass
+
+  # finally show the named varargs
+  if argspec.keywords:
+    kwargsname = argspec.keywords
+    for k,v in kwargs.items():
+      print("**" + kwargsname + " " + k + " = " + str(v))
+
+# ==========
+
+@logintrospect
 def _is_downloaded(url, filename):
     if not os.path.isfile(filename):
+        log.debug("File '{}' does not exist.".format(filename))
         return False
 
-    r = requests.get(url, stream=True)
-    remote_size = r.headers['Content-Length']
-    local_size = os.path.getsize(filename)
+    log.debug("File '{}' exist.".format(filename))
+    try:
+        r = requests.get(url, stream=True)
+        remote_size = int(r.headers['Content-Length'])
+        local_size = int(os.path.getsize(filename))
+    except Exception as err:
+        log.error(err)
+        return False
+    log.debug("Remote file size: " + str(remote_size))
+    log.debug("Local file size: " + str(local_size))
     return local_size == remote_size
 
 

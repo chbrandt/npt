@@ -4,22 +4,24 @@ Define commands and sub-commands line interface
 import click
 from click import argument,option
 
+from gpt import log
+
 from gpt.search import bbox as search_bbox
 from gpt.utils.formatters import json_2_geojson
 from gpt.utils.bbox import string_2_dict as bbox_string_2_dict
 from gpt.pipelines import Download
 from gpt.utils import geojson
 
-class FormatHelp(click.Group):
-    def format_help_text(self, ctx, formatter):
-        if self.help:
-            formatter.write_paragraph()
-            for line in self.help.split('\n'):
-                formatter.write_text(line)
 
-@click.group(cls=FormatHelp)
-def main():
-    pass
+
+# === MAIN
+@click.group()
+@option('--debug', is_flag=True, default=False, help="Output DEBUG-level messages")
+def main(debug):
+    if debug:
+        log.setLevel('DEBUG')
+# ===
+
 
 
 @main.command()
