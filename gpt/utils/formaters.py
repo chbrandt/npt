@@ -1,10 +1,39 @@
-def bbox_string_2_dict(bbox):
-    """
-    Convert bbox in comma-sep string to bbox dictionary
+import geopandas as gpd
+import shapely
 
-    Input bbox (string) is as 'minlat,maxlat,westlon,eastlon'
+from .bbox import string_2_dict as bbox_string_2_dict
+
+from . import log
+
+def geojson_2_geodataframe(records):
+    assert isinstance(records, list), "Expected a list [{}], instead got {}".format(type(records))
+    for rec in records:
+        try:
+            rec['geometry'] = shapely.wkt.loads(rec['geometry'])
+        except TypeError as err:
+            print("Error in: ", rec)
+            raise err
+    gdf = gpd.GeoDataFrame(records)
+    return gdf
+
+
+def products_2_geojson(products, filename):
     """
-    _lbl = ['minlat','maxlat','westlon','eastlon']
-    _bbx = [float(c) for c in bbox.split(',')]
-    bounding_box = {k:v for k,v in zip(_lbl,_bbx)}
-    return bounding_box
+    Write products to a GeoJSON 'filename'. Return GeoPandas dataframe.
+
+    > Note: This function modifies field 'geometry' from 'products'
+
+    products: list of product records (from search_footprints)
+    filename: GeoJSON filename for the output
+    """
+
+    assert isinstance(products, list), "Expected 'products' to be a list"
+    assert filename and filename.strip() != '', "Give me a valid filename"
+
+    gdf = geojson_2_geodataframe(products)
+
+    gdf.to_file(filename, driver='GeoJSON')
+    print("File '{}' written.".format(filename))
+    return
+
+json_2_geojson = products_2_geojson

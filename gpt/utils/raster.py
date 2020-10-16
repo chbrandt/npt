@@ -1,5 +1,7 @@
 import rasterio as rio
 
+from . import log
+
 def warp(fileinname, fileoutname, dst_crs='EPSG:4326'):
     import numpy as np
     from rasterio.warp import calculate_default_transform, reproject, Resampling
