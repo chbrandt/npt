@@ -9,8 +9,11 @@ from gpt import log
 from gpt.search import bbox as search_bbox
 from gpt.utils.formatters import json_2_geojson
 from gpt.utils.bbox import string_2_dict as bbox_string_2_dict
+
 from gpt.pipelines import Download
 from gpt.utils import geojson
+
+from gpt.pipelines import Processing
 
 
 
@@ -18,6 +21,9 @@ from gpt.utils import geojson
 @click.group()
 @option('--debug', is_flag=True, default=False, help="Output DEBUG-level messages")
 def main(debug):
+    """
+    Interface to gpt pipelines
+    """
     if debug:
         log.setLevel('DEBUG')
 # ===
@@ -33,7 +39,7 @@ def main(debug):
 # @option('--provider', default='ode', help="Choose interface/provider to query")
 def search(bbox, dataset, output, provider, contains):
     """
-    Query 'provider'/'dataset' for 'bbox'-intersecting data products
+    Query 'provider'/'dataset' for data products in/on 'bbox'
 
     \b
     Attributes:
@@ -70,11 +76,15 @@ def search(bbox, dataset, output, provider, contains):
 @option('--progress/--silent', default=True, help="Print download progress")
 @option('--parallel/--serial', default=False, help="Download in parallel")
 def download(geojson_file, basepath, output, progress, parallel):
+    """
+    Download features' image_url/label_url data products
+    """
     features = geojson.read(geojson_file)
     products = []
     for feature in features:
         mod_feature = Download.run(feature, base_path=basepath, progressbar=progress)
         products.append(mod_feature)
+    log.debug(products)
     if output:
         json_2_geojson(products, filename=output)
     else:
@@ -82,15 +92,28 @@ def download(geojson_file, basepath, output, progress, parallel):
         click.echo(json.dumps(products, indent=2))
 
 
-
 @main.command()
 @argument('geojson_file')
 @argument('basepath')
 @option('--parallel/--serial', default=False, help="Process in parallel")
-def process(geojson_file, basepath):
+def process(geojson_file, basepath, parallel):
+    """
+    WIP
+    """
     features = geojson.read(geojson_file)
     for feature in features:
         Processing.run(feature, output_path=basepath)
+
+
+@main.command()
+@argument('filespath')
+@argument('basepath')
+def mosaic(filespath, basepath):
+    """
+    TBD
+    """
+    raise NotImplementedError
+
 
 
 if __name__ == '__main__':

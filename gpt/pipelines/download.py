@@ -35,16 +35,14 @@ def run_props(properties, base_path, progressbar=False):
     properties = properties.copy()
 
     image_url = properties['image_url']
-    image_path = _download(image_url, basepath=base_path,
-                                              progressbar=progressbar)
+    image_path = _download(image_url, basepath=base_path, progressbar=progressbar)
     if image_path:
         properties['image_path'] = image_path
 
     if ('label_url' in properties
         and properties['label_url'] != properties['image_url']):
         label_url = properties['label_url']
-        label_path = _download(label_url, basepath=base_path,
-                                                  progressbar=progressbar)
+        label_path = _download(label_url, basepath=base_path, progressbar=progressbar)
         if label_path:
             properties['label_path'] = label_path
 

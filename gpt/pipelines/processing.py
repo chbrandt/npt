@@ -7,21 +7,21 @@ from ..utils.filenames import change_dirname as _change_file_dirname
 from ..utils.filenames import insert_preext as _add_file_subextension
 
 
+
 def proj_planet2earth(filein, fileout):
     from gpt.utils.raster import warp
     return warp(filein, fileout)
 
 def _run_geo_feature(geojson_feature, output_path, projection="sinusoidal", tmpdir=None):
     feature = geojson_feature.copy()
-    result_filename = Processing._run_props(feature['properties'], output_path)
-    return feature
+    return _run_props(feature['properties'], output_path, projection, tmpdir)
 
 run = _run_geo_feature
 
 
 def _run_props(properties, output_path, map_projection, tmpdir):
     image_filename = properties['image_path']
-    output = Processing.run_file(image_filename, output_path, map_projection, tmpdir)
+    return run_file(image_filename, output_path, map_projection, tmpdir)
 
 
 def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None):
