@@ -6,9 +6,10 @@ from ._sh import isissh
 def _wrapper(exec):
     if isinstance(exec, str):
         exec = [exec]
-    def _isissh(**kwargs):
+    def _isissh(*args,**kwargs):
+        v = [f'{v}' for v in args]
         kv = [f'{k}={v}' for k,v in kwargs.items()]
-        comm = ' '.join(exec+kv)
+        comm = ' '.join(exec+v+kv)
         log.info(comm)
         return isissh(comm)
         # from sh import sleep
