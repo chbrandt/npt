@@ -39,4 +39,8 @@ from . import (format,
 
 from ._sh import isissh
 
+def set_docker(name):
+    isissh.set_docker(name) 
+
+
 __all__ = ['isissh']
