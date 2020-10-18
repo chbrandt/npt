@@ -1,13 +1,11 @@
 from gpt import log
-# import sh
-# isissh = sh(_long_prefix="")
 
-def set_sh():
+
+def _set_sh():
     from sh import bash
     return bash.bake('--login -c'.split())
 
-
-def set_sh_docker(name):
+def _set_sh_docker(name):
     from sh import docker
     _exec_ = "exec -t {name!s} bash --login -c"
     _run_ = ""
@@ -18,12 +16,10 @@ def set_sh_docker(name):
     isissh = docker.bake(_exec_.format(name=name).split())
     return isissh
 
-
 def list_containers():
     # from sh import docker
     # res = docker('ps','-a')
     return ['isis3-test']
-
 
 class Sh():
     _sh = None
@@ -33,12 +29,16 @@ class Sh():
     def __call__(self, *args, **kwargs):
         return self._sh(*args, **kwargs)
 
+    @staticmethod
+    def log(res):
+        log.debug("Exit code: "+str(res and res.exit_code))
+
     def set_docker(self, name):
         assert name in list_containers()
-        self._sh = set_sh_docker(name)
+        self._sh = _set_sh_docker(name)
 
     def reset(self):
-        _sh = set_sh()
+        _sh = _set_sh()
         log.debug(_sh)
         self._sh = _sh
 
