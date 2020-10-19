@@ -1,6 +1,7 @@
 from npt import log
 from ._sh import sh
 
+from npt.utils import raster
 
 _dstools = {
     'pds2isis': {
@@ -11,7 +12,7 @@ _dstools = {
 }
 
 
-def pds2isis(filename_in, filename_out, dataset='test'):
+def pds2isis(filename_in, filename_out, dataset='ctx'):
     assert dataset in _dstools['pds2isis'], "Dataset '{}' not supported.".format(dataset)
     foo = _dstools['pds2isis'][dataset]
     res = foo(FROM=filename_in, TO=filename_out)
@@ -26,5 +27,4 @@ def init_spice(filename):
 
 def isis2tiff(filename_in, filename_out):
     # return isissh.isis2std(FROM=filename_in, TO=filename_out, FORMAT='TIFF')
-    from npt import raster
     return raster.to_tiff(filename_in, filename_out, format_in='ISIS')
