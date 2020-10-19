@@ -102,10 +102,11 @@ def download(geojson_file, basepath, output, progress, parallel):
 @main.command()
 @argument('geojson_file')
 @argument('basepath')
+@option('--output', metavar='<.geojson>', default='', help="GeoJSON filename with query results")
 @option('--parallel/--serial', default=False, help="Process in parallel")
 @option('--docker-isis', default=None, help="ISIS3 Docker container to use")
 @option('--tmpdir', default=None, help="Temp dir to use during processing")
-def process(geojson_file, basepath, parallel, docker_isis, tmpdir):
+def process(geojson_file, basepath, parallel, docker_isis, tmpdir, output):
     """
     WIP
     """
@@ -113,8 +114,16 @@ def process(geojson_file, basepath, parallel, docker_isis, tmpdir):
     if docker_isis:
         from npt import isis
         isis.set_docker(docker_isis)
+    products = []
     for feature in features:
-        Processing.run(feature, output_path=basepath, tmpdir=tmpdir)
+        mod_feature = Processing.run(feature, output_path=basepath, tmpdir=tmpdir)
+        products.append(mod_feature)
+    log.debug(products)
+    if output:
+        json_2_geojson(products, filename=output)
+    else:
+        import json
+        click.echo(json.dumps(products, indent=2))
 
 
 @main.command()

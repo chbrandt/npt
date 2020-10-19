@@ -14,14 +14,25 @@ def proj_planet2earth(filein, fileout):
 
 def _run_geo_feature(geojson_feature, output_path, projection="sinusoidal", tmpdir=None):
     feature = geojson_feature.copy()
-    return _run_props(feature['properties'], output_path, projection, tmpdir)
+    properties = feature['properties']
+    properties = _run_props(properties, output_path, projection, tmpdir)
+    feature['properties'] = properties
+    return feature
 
 run = _run_geo_feature
 
 
 def _run_props(properties, output_path, map_projection, tmpdir):
+    properties = properties.copy()
     image_filename = properties['image_path']
-    return run_file(image_filename, output_path, map_projection, tmpdir)
+    out = run_file(image_filename, output_path, map_projection, tmpdir)
+    if out:
+        assert len(out) == 2
+        img_isis,img_tiff = out
+        properties['image_path'] = img_isis
+        properties['tiff_path'] = img_tiff
+        return properties
+    return None
 
 
 def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None):
@@ -93,4 +104,4 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
         log.info("Cleaning temporary files/directory ({})".format(tmpdir))
         shutil.rmtree(tmpdir)
 
-    return f_tif_out
+    return (f_cub_out, f_tif_out)
