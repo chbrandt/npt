@@ -4,16 +4,16 @@ Define commands and sub-commands line interface
 import click
 from click import argument,option
 
-from gpt import log
+from npt import log
 
-from gpt.search import bbox as search_bbox
-from gpt.utils.formatters import json_2_geojson
-from gpt.utils.bbox import string_2_dict as bbox_string_2_dict
+from npt.search import bbox as search_bbox
+from npt.utils.formatters import json_2_geojson
+from npt.utils.bbox import string_2_dict as bbox_string_2_dict
 
-from gpt.pipelines import Download
-from gpt.utils import geojson
+from npt.pipelines import Download
+from npt.utils import geojson
 
-from gpt.pipelines import Processing
+from npt.pipelines import Processing
 
 
 
@@ -22,7 +22,7 @@ from gpt.pipelines import Processing
 @option('--debug', is_flag=True, default=False, help="Output DEBUG-level messages")
 def main(debug):
     """
-    Interface to gpt pipelines
+    Interface to npt pipelines
     """
     if debug:
         log.setLevel('DEBUG')

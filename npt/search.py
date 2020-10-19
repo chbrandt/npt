@@ -37,10 +37,10 @@ def bbox(bbox, dataset=None,
     dataset be like: 'mars/mro/hirise/rdrv11'
     bbox: {'minlat': -0.5, 'maxlat': 0.5, 'westlon': 359.5, 'eastlon': 0.5}
     """
-    from gpt.pds.ode import ODE
+    from npt.pds.ode import ODE
 
     if provider.lower() != 'ode':
-        msg = "'{facility}' not implemented. Check 'gpt.interfaces'."
+        msg = "'{facility}' not implemented. Check 'npt.interfaces'."
         raise NotImplementedError(msg.format(facility=facility))
 
     if dataset:

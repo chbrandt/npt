@@ -1,4 +1,4 @@
-from gpt import log
+from npt import log
 
 
 def _set_sh():

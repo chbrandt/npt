@@ -1,4 +1,4 @@
-from gpt import log
+from npt import log
 from ._sh import sh
 
 
@@ -26,5 +26,5 @@ def init_spice(filename):
 
 def isis2tiff(filename_in, filename_out):
     # return isissh.isis2std(FROM=filename_in, TO=filename_out, FORMAT='TIFF')
-    from gpt import raster
+    from npt import raster
     return raster.to_tiff(filename_in, filename_out, format_in='ISIS')

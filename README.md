@@ -3,17 +3,17 @@
 ### Search
 
 ```python
->>> import gpt
->>> gpt.search.about()
-# print(gpt.search.__doc__)
->>> gpt.search.bbox('<bbox>', dataset='<dataset>', output='<geojson>')
+>>> import npt
+>>> npt.search.about()
+# print(npt.search.__doc__)
+>>> npt.search.bbox('<bbox>', dataset='<dataset>', output='<geojson>')
 # "Dataset" defines query interface (endpoint), products to filter
 # Internally, 'search' define the mapping schema for output (gjson) from provider (json/xml)
 ```
 
 ### Data sets
 ```
->>> gpt.datasets.list
+>>> npt.datasets.list
 mars / mro / ctx / edr
 mars /
 ```

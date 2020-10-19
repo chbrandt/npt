@@ -1,12 +1,12 @@
 import sqlite3
 from sqlite3 import Error
 
-from gpt import log
+from npt import log
 
 
 class DB(object):
     _conn = None
-    def __init__(self, db_file='/tmp/gpt.db'):
+    def __init__(self, db_file='/tmp/npt.db'):
         super().__init__()
         # self.create_connection(db_file=':memory:')
         self.create_connection(db_file)

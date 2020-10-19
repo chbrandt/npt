@@ -4,7 +4,7 @@ import geopandas as gpd
 
 from . import log
 
-from gpt.pds.ode import ODE
+from npt.pds.ode import ODE
 
 
 def run(bounding_box, dataset_id, geojson_filename):

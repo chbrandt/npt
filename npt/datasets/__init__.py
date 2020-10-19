@@ -4,7 +4,7 @@ Datasets dynamic import
 # Refs:
 # - https://packaging.python.org/guides/creating-and-discovering-plugins/
 # - https://stackoverflow.com/a/64124377/687896
-import gpt
+import npt
 
 import sys
 import pkgutil
@@ -53,7 +53,7 @@ class Datasets(object):
                     for c,d in self._schema.items()
                 ])
         _sql_create_datasets_table += "({})".format(_s)
-        gpt.db.create_table(_sql_create_datasets_table)
+        npt.db.create_table(_sql_create_datasets_table)
 
 
     def insert_datasets(self, datasets):
@@ -73,7 +73,7 @@ class Datasets(object):
             INSERT INTO {table}({cols}) VALUES({vals})
         """.format(table=self._name, cols=cols, vals=vals)
 
-        gpt.db.insert_record(_sql_insert_dataset_record)
+        npt.db.insert_record(_sql_insert_dataset_record)
 
 
 # datasets = Datasets(_datasets)

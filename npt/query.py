@@ -1,4 +1,4 @@
-import gpt
+import npt
 
 class Query(object):
     """

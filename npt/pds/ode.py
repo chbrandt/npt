@@ -1,8 +1,8 @@
 import requests
 
-from gpt import log
-from gpt import query
-from gpt import datasets
+from npt import log
+from npt import query
+from npt import datasets
 
 API_URL = 'https://oderest.rsl.wustl.edu/live2'
 

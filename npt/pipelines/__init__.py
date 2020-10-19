@@ -1,4 +1,4 @@
-from gpt import log
+from npt import log
 
 from . import search as Search
 from . import download as Download

@@ -9,7 +9,7 @@ from ..utils.filenames import insert_preext as _add_file_subextension
 
 
 def proj_planet2earth(filein, fileout):
-    from gpt.utils.raster import warp
+    from npt.utils.raster import warp
     return warp(filein, fileout)
 
 def _run_geo_feature(geojson_feature, output_path, projection="sinusoidal", tmpdir=None):
@@ -44,7 +44,7 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
         f_in = shutil.copy(filename_init, tmpdir)
 
         # FORMAT (pds->isis)
-        from gpt.isis import format
+        from npt.isis import format
         # -- Transfrom PDS (IMG) into ISIS (CUB) file
         f_cub = _change_file_extension(f_in, 'cub')
         format.pds2isis(f_in, f_cub)
@@ -52,12 +52,12 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
         format.init_spice(f_cub)
 
         # CALIBRATION
-        from gpt.isis import calibration
+        from npt.isis import calibration
         f_cal = _add_file_subextension(f_cub, 'cal')
         calibration.radiometry(f_cub, f_cal)
 
         # MAP-PROJECTION
-        from gpt.isis import projection
+        from npt.isis import projection
         ## Define projection
         f_map = _add_file_subextension(f_cal, 'map')
         _flist = [f_cal]

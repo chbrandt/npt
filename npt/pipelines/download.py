@@ -2,7 +2,7 @@ import os
 
 from . import log
 
-from gpt.utils.download import download_file
+from npt.utils.download import download_file
 
 def _run_geo_feature(geojson_feature, base_path, progressbar=False):
     """

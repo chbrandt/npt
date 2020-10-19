@@ -1,6 +1,6 @@
 # Version number
 
-GPT version number is directly related to Git tags (last _tag_ -> current _version_).
+npt version number is directly related to Git tags (last _tag_ -> current _version_).
 
 The process of keeping tag/version sync'd may be done manually or with help from some tool.
 For instance, there are two libraries in Python of very good quality:
@@ -30,13 +30,13 @@ When versioning a release, pre-release, release-candidate in this repo we use th
 three numbers `X.Y.Z` (_major_`.`_minor_`.`_fix_) **preceeded** by a '`v`' (e.g, `v0.1`).
 
 Once the repository is in a release state, a tag is first added to the current HEAD/commit,
-then `gpt/__version__.py` is updated with the current version/tag (without '`v`') and
+then `npt/__version__.py` is updated with the current version/tag (without '`v`') and
 then a new commit -- just with the version modification -- is done and pushed.
 
 For example,
 ```bash
 $ git tag -m "v0.0.1" v0.0.1
-$ dunamai from git | tee gpt/__version__.py
-$ git add gpt/__version__.py
+$ dunamai from git | tee npt/__version__.py
+$ git add npt/__version__.py
 $ git commit -m "Update version"
 ```
