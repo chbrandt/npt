@@ -32,16 +32,19 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
         assert os.path.isdir(tmpdir), """Given tmpdir '{}' does not exist""".format(tmpdir)
         tempfile.tempdir = tmpdir
 
+    assert os.path.isdir(output_path), """Given output_path '{}' does not exist""".format(output_path)
+
     try:
         tmpdir = tempfile.mkdtemp(prefix='neanias_')
     except:
         log.error("Temporary directory ('{}') could not be created.".format(tmpdir))
         raise err
     else:
-        log.info("Processing temporary dir: '{}'".format(tmpdir))
+        log.info("Temp dir: '{}'".format(tmpdir))
 
     try:
         f_in = shutil.copy(filename_init, tmpdir)
+        log.info("File '{}' copied".format(filename_init))
 
         # FORMAT (pds->isis)
         from npt.isis import format
@@ -75,16 +78,19 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
     else:
         log.info("Processing finished, file '{}' created.".format(f_tif))
 
+    f_tif_out =  _change_file_dirname(f_tif, output_path)
+    f_cub_out =  _change_file_dirname(f_cub, output_path)
+
     try:
         log.info("Copying from temp to archive/output path")
-        f_out =  _change_file_dirname(f_tif, output_path)
-        shutil.move(f_tif, f_out)
+        shutil.move(f_tif, f_tif_out)
+        shutil.move(f_cub, f_cub_out)
     except Exception as err:
-        log.error("File '{}' could not be moved to '{}'".format(f_tif, f_out))
+        log.error("File '{}','{}' could not be created".format(f_cub_out, f_tif_out))
         log.error("Temporary files, '{}' will remain. Remove them manually.".format(tmpdir))
         raise err
     finally:
         log.info("Cleaning temporary files/directory ({})".format(tmpdir))
         shutil.rmtree(tmpdir)
 
-    return f_out
+    return f_tif_out
