@@ -6,7 +6,8 @@ from click import argument,option
 
 from npt import log
 
-from npt.search import bbox as search_bbox
+# from npt.search import bbox as search_bbox
+from npt.pipelines import Search
 from npt.utils.formatters import json_2_geojson
 from npt.utils.bbox import string_2_dict as bbox_string_2_dict
 
@@ -53,19 +54,25 @@ def search(bbox, dataset, output, provider, contains):
             "[-0.5,0.5,359.5,0.5]"
 
     """
-    dataset_id = dataset
-
     bbox = bbox.replace('[','').replace(']','')
     bounding_box = bbox_string_2_dict(bbox)
-
-    products = search_bbox(bbox=bounding_box,
-                           dataset=dataset_id,
-                           provider=provider,
-                           contains=contains)
+    # products = search_bbox(bbox=bounding_box,
+    #                        dataset=dataset_id,
+    #                        provider=provider,
+    #                        contains=contains)
     if output:
-        json_2_geojson(products, filename=output)
+        # json_2_geojson(products, filename=output)
+        products = Search.run(bounding_box=bounding_box,
+                           dataset_id=dataset,
+                           # provider=provider,
+                           geojson_filename=output,
+                           contains=contains)
     else:
         import json
+        products = Search.run(bounding_box=bounding_box,
+                           dataset_id=dataset,
+                           # provider=provider,
+                           contains=contains)
         click.echo(json.dumps(products, indent=2))
 
 

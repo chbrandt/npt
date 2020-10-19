@@ -89,19 +89,23 @@ class ODE(query.Query):
         return products
 
     def parse_products(self, products, schema):
+        if not products:
+            print("No products found")
+            return None
+            
         products_output = []
         for i,product in enumerate(products):
             _meta = readout_product_meta(product)
             _files = readout_product_files(product)
             _fprint = readout_product_footprint(product)
             _pfile = find_product_file(product_files=_files,
-                                           product_type='product_image',
-                                           descriptors=DESCRIPTORS[self.instr])
+                                       product_type='product_image',
+                                       descriptors=DESCRIPTORS[self.instr])
             _pfile = _pfile['URL']
             try:
                 _lfile = find_product_file(product_files=_files,
-                                               product_type='product_label',
-                                               descriptors=DESCRIPTORS[self.instr])
+                                           product_type='product_label',
+                                           descriptors=DESCRIPTORS[self.instr])
                 _lfile = _lfile['URL']
             except KeyError as err:
                 _lfile = _pfile
