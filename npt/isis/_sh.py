@@ -19,7 +19,7 @@ def _set_sh_docker(name):
 def list_containers():
     # from sh import docker
     # res = docker('ps','-a')
-    return ['isis3-test']
+    return ['isis3']
 
 class Sh():
     _sh = None
