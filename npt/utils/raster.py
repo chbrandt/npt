@@ -1,4 +1,4 @@
-import rasterio as rio
+import rasterio
 
 from . import log
 
@@ -38,11 +38,11 @@ def to_tiff(filename_in, filename_out, format_in):
     format_out = 'GTiff'
     format_in = 'ISIS3' if format_in == 'ISIS' else format_in
     try:
-        src = rio.open(filename_in, 'r', driver=format_in)
+        src = rasterio.open(filename_in, 'r', driver=format_in)
         data = src.read()
         params = src.meta
         params['driver'] = format_out
-        dst = rio.open(filename_out, 'w', **params)
+        dst = rasterio.open(filename_out, 'w', **params)
         dst.write(data)
         src.close()
         dst.close()
