@@ -7,16 +7,24 @@ from ..utils.filenames import change_dirname as _change_file_dirname
 from ..utils.filenames import insert_preext as _add_file_subextension
 
 
+def echo(msg):
+    #print(msg)
+    log.debug(msg)
+
 
 def proj_planet2earth(filein, fileout):
     from npt.utils.raster import warp
     return warp(filein, fileout)
 
+
 def _run_geo_feature(geojson_feature, output_path, projection="sinusoidal", tmpdir=None):
+    echo("Processing Feature: {!s}".format(geojson_feature))
+    echo("Output go to: {!s}".format(output_path))
     feature = geojson_feature.copy()
     properties = feature['properties']
     properties = _run_props(properties, output_path, projection, tmpdir)
     feature['properties'] = properties
+    echo("Post-processed feature: {!s}".format(feature))
     return feature
 
 run = _run_geo_feature
@@ -26,12 +34,17 @@ def _run_props(properties, output_path, map_projection, tmpdir):
     properties = properties.copy()
     image_filename = properties['image_path']
     out = run_file(image_filename, output_path, map_projection, tmpdir)
+    echo("Output files (IMG,TIF): {!s}".format(out))
     if out:
-        assert len(out) == 2
-        img_isis,img_tiff = out
+        echo("IF 'out' (non-null output)")
+        assert len(out) == 2, "Was expecting a tuple of filenames (IMG,TIF). Instead got {!s}".format(out)
+        img_isis, img_tiff = out
+        echo("ISIS3/IMG output file: {!s}".format(img_isis))
+        echo("GeoTIFF output file: {!s}".format(img_tiff))
         properties['image_path'] = img_isis
         properties['tiff_path'] = img_tiff
         return properties
+    log.error("Processing output is null. See the temp files.")
     return None
 
 
