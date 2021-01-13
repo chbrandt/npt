@@ -9,7 +9,7 @@ from ..utils.filenames import insert_preext as _add_file_subextension
 
 def echo(msg):
     #print(msg)
-    log.debug(msg)
+    print(msg)
 
 
 def proj_planet2earth(filein, fileout):
