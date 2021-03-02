@@ -73,4 +73,4 @@ def tiff2cog(filename_in, filename_out):
         -co TILED=YES -co COMPRESS=LZW -co BLOCKXSIZE=512 -co BLOCKYSIZE=512
         -co COPY_SRC_OVERVIEWS=YES --config  GDAL_TIFF_OVR_BLOCKSIZE 512
     """.split()
-    res = gdal_cmd(filename_in, filename_out, cog_args)
+    res = gdal_cmd(filename_in, filename_out, *cog_args)
