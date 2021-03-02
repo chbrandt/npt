@@ -48,7 +48,7 @@ def _run_props(properties, output_path, map_projection, tmpdir):
     return None
 
 
-def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None):
+def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None, cog=False):
     # Create a temp dir for the processing
     import shutil
     import tempfile
@@ -94,7 +94,7 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
 
         # FORMAT to TIFF
         f_tif = _change_file_extension(f_map, 'tif')
-        format.isis2tiff(f_map, f_tif)
+        format.isis2tiff(f_map, f_tif, cog=cog)
 
     except Exception as err:
         log.error(err)
