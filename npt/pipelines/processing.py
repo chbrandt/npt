@@ -103,8 +103,9 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
     else:
         log.info("Processing finished, file '{}' created.".format(f_tif))
 
-    f_tif_out =  _change_file_dirname(f_tif, output_path)
-    f_cub_out =  _change_file_dirname(f_cub, output_path)
+    f_tif_out = _change_file_extension(f_in, 'tif')
+    f_tif_out = _change_file_dirname(f_tif_out, output_path)
+    f_cub_out = _change_file_dirname(f_cub, output_path)
 
     try:
         log.info("Copying from temp to archive/output path")
