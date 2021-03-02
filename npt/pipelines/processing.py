@@ -34,13 +34,14 @@ def _run_props(properties, output_path, map_projection, tmpdir):
     properties = properties.copy()
     image_filename = properties['image_path']
     out = run_file(image_filename, output_path, map_projection, tmpdir)
-    echo("Output files (IMG,TIF): {!s}".format(out))
+    echo("Output files (CUB,TIF): {!s}".format(out))
     if out:
         echo("IF 'out' (non-null output)")
-        assert len(out) == 2, "Was expecting a tuple of filenames (IMG,TIF). Instead got {!s}".format(out)
+        assert len(out) == 2, "Was expecting a tuple of filenames (CUB,TIF). Instead got {!s}".format(out)
         img_isis, img_tiff = out
         echo("ISIS3/IMG output file: {!s}".format(img_isis))
         echo("GeoTIFF output file: {!s}".format(img_tiff))
+        #TODO: change 'image_path' to 'cube_path'. 'image_path' to stay pointing to source file
         properties['image_path'] = img_isis
         properties['tiff_path'] = img_tiff
         return properties
