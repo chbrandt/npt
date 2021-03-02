@@ -49,7 +49,7 @@ def _run_props(properties, output_path, map_projection, tmpdir):
     return None
 
 
-def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None, cog=False):
+def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None, cog=True):
     # Create a temp dir for the processing
     import shutil
     import tempfile
