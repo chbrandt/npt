@@ -51,16 +51,22 @@ def _solve_datasets_references(dsets: list) -> list:
     Solve datasets/dictionary internal references
     """
     def _solve_self_references(mappings: dict) -> dict:
+        """
+        This function is able to resolve only simple references
+        """
         import re
         mapout = {k:v for k,v in mappings.items()
                       if not re.match('.*{.+}.*', v) }
+        cnt = 0
         while len(mapout) < len(mappings):
+            cnt += 1
+            assert cnt <= len(mappings), "Apparently we are going for an infinite loop here..."
             _reset = set(mappings.keys()) - set(mapout.keys())
             _aux = {k:mappings[k].format(**mapout) for k in _reset}
-            mapout.update({ k:v
-                            for k,v in _aux.items()
-                            if not re.match('.*{.+}.*', v) })
+            mapout.update({ k:v for k,v in _aux.items()
+                                if not re.match('.*{.+}.*', v) })
         return mapout
+
     return [_solve_self_references(d) for d in dsets]
 
 # Overwrite '_datasets' with parsed/dereferenced version
