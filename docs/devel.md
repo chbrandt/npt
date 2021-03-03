@@ -40,3 +40,13 @@ $ dunamai from git | tee npt/__version__.py
 $ git add npt/__version__.py
 $ git commit -m "Update version"
 ```
+
+
+# Tests
+
+Run the tests with [Pytest](pytest.org):
+```
+% cd /path/to/npt/
+% pip install -e .
+% pytest tests/
+```
