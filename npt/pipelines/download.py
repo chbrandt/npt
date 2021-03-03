@@ -48,6 +48,7 @@ def run_props(properties, base_path, progressbar=False):
             properties['label_path'] = label_path
 
     if 'label_path' in properties:
+        assert 'label_url' in properties
         metaDict = createLblDict(properties['label_path'])
     else:
         metaDict = createImgDict(properties['image_path'])
