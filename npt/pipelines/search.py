@@ -7,7 +7,7 @@ from . import log
 from npt.pds.ode import ODE
 
 
-def run(bounding_box, dataset_id, geojson_filename, contains=False):
+def run(bounding_box, dataset_id, output_geojson=None, contains=False):
     """
     Write GeoJSON with products intersecting 'bounding_box'
 
@@ -17,10 +17,12 @@ def run(bounding_box, dataset_id, geojson_filename, contains=False):
         Longitues range is [0:360] (180 center).
     * dataset_id:
         Datasets identifiers. Options are 'mro/ctx/edr', 'mro/hirise/rdrv11'.
-    * geojson_filename:
+    * output_geojson:
         Filename for the GeoJSON containing found products as Features.
     """
-    output_filename = geojson_filename
+    output_filename = output_geojson
+    if not bounding_box:
+        return None
     products = query_footprints(bbox=bounding_box, dataset=dataset_id, contains=contains)
     if not products:
         return None

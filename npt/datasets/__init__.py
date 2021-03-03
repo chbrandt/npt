@@ -35,14 +35,14 @@ _datasets = [
         "mission": "mro",
         "instrument": "ctx",
         "product_type": "edr",
-        "id": "{mission}/{instrument}/{product_type}"
+        "id": "{target}/{mission}/{instrument}/{product_type}"
     },
     {
         "target": "mars",
         "mission": "mro",
         "instrument": "hirise",
         "product_type": "rdrv3",
-        "id": "{mission}/{instrument}/{product_type}"
+        "id": "{target}/{mission}/{instrument}/{product_type}"
     }
 ]
 

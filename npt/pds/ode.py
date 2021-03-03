@@ -92,7 +92,7 @@ class ODE(query.Query):
         if not products:
             print("No products found")
             return None
-            
+
         products_output = []
         for i,product in enumerate(products):
             _meta = readout_product_meta(product)
@@ -122,7 +122,9 @@ class ODE(query.Query):
 
 # ODEQuery.read_products
 def read_products(request):
-    assert request.status_code == 200 and request.json()['ODEResults']['Status'].lower() == 'success'
+    if not (request.status_code == 200
+            and request.json()['ODEResults']['Status'].lower() == 'success'):
+        return None
     try:
         products = request.json()['ODEResults']['Products']['Product']
         assert isinstance(products, list), "Was expecting 'list', got '{}' instead".format(type(products))
