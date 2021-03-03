@@ -17,6 +17,11 @@ DESCRIPTORS = {
         'product_label': ('Description', 'PRODUCT LABEL FILE'),
         'browse_image': ('Description', 'BROWSE'),
         'browse_thumbnail': ('Description', 'THUMBNAIL')
+    },
+    'hrsc': {
+        'product_image': ('Description', 'PRODUCT DATA FILE WITH LABEL'),
+        'browse_image': ('Description', 'BROWSE IMAGE'),
+        'product_shapefiles': ('Description', 'PRODUCT FOOTPRINT SHAPEFILES (TAR.GZ) *')
     }
 }
 
@@ -204,10 +209,17 @@ def readout_product_meta(product_json):
 
 # USED by 'parse_products'
 def find_product_file(product_files, product_type, descriptors=DESCRIPTORS):
-    _key,_val = descriptors[product_type]
-    pfl = list(filter(lambda pf:pf[_key]==_val, product_files))
-    _multiple_matches = "I was expecting only one Product matching ptype '{}' bu got '{}'."
-    assert len(pfl) == 1, _multiple_matches.format(product_type, len(pfl))
+    desc_key, desc_val = descriptors[product_type]
+    is_val_regex = desc_val.strip()[-1]=='*'
+    desc_val_token = desc_val[:-1].strip()
+    _foo = (lambda pf:
+            pf[desc_key] == desc_val
+            if not is_val_regex
+            else
+            desc_val_token in pf[desc_key])
+    pfl = list(filter(_foo, product_files))
+    multiple_matches = "I was expecting only one Product matching ptype '{}' bu got '{}'."
+    assert len(pfl) == 1, multiple_matches.format(product_type, len(pfl))
     return pfl[0]
 
 
