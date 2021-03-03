@@ -53,7 +53,6 @@ def run_props(properties, base_path, progressbar=False):
         metaDict = createImgDict(properties['image_path'])
 
     properties.update(metaDict)
-    #TODO: read metadata from downloaded file, make it to feature/properties
     return properties
 
 
