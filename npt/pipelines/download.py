@@ -5,6 +5,7 @@ from . import log
 
 from npt.utils.download import download_file
 
+#TODO: Add argument "data product type" to define what to download.
 def _run_geo_feature(geojson_feature, base_path, progressbar=False):
     """
     Download data products (Image, Label) inside 'base_path'

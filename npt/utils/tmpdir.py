@@ -4,7 +4,7 @@ import pathlib
 
 from npt import log
 
-def mkdir(basedir=None, prefix=None):
+def mkpath(basedir=None, prefix=None):
     """
     Return path of directory for temporary use
 

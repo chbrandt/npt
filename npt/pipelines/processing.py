@@ -49,6 +49,7 @@ def _run_props(properties, output_path, map_projection, tmpdir):
     return None
 
 
+#TODO: Add argument to set docker container to run --e.g., isis3-- commands
 def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None, cog=True):
     # Create a temp dir for the processing
     import shutil
@@ -67,6 +68,12 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
     else:
         log.info("Temp dir: '{}'".format(tmpdir))
 
+    #TODO: Add argument to set docker container to run --e.g., isis3-- commands
+    #       Something along the lines:
+    #       > run_container = 'isis3_gdal'
+    #       > from npt.isis import sh
+    #       > if run_container: sh.set_docker(run_container)
+
     try:
         f_in = shutil.copy(filename_init, tmpdir)
         log.info("File '{}' copied".format(filename_init))
@@ -75,10 +82,16 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
         from npt.isis import format
         # -- Transfrom PDS (IMG) into ISIS (CUB) file
         f_cub = _change_file_extension(f_in, 'cub')
+
         format.pds2isis(f_in, f_cub)
         # -- Init SPICE kernel
         format.init_spice(f_cub)
 
+        #TODO: be able to define at function level the container to run
+        #       Functions in FORMAT and CALIBRATION, for example, could use a
+        #       container 'isis3', whereas the FORMATting to TIFF, could use a
+        #       different container, 'gispy' with "gdal" in it (not in 'isis3')
+        
         # CALIBRATION
         from npt.isis import calibration
         f_cal = _add_file_subextension(f_cub, 'cal')

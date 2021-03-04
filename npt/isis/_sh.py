@@ -19,7 +19,8 @@ def _set_sh_docker(name):
 def list_containers():
     # from sh import docker
     # res = docker('ps','-a')
-    return ['gispy','isis3','isis3_gdal']
+    #TODO: fix this!
+    return ['gispy','isis3','isis3_gdal','isis3_gdal_npt_tests']
 
 class Sh():
     _sh = None
