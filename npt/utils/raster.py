@@ -70,6 +70,7 @@ def tiff2cog(filename_in, filename_out):
     from npt.isis import sh
     gdal_cmd = sh.wrap('gdal_translate')
     cog_args = """
+        -a_nodata -9999
         -co TILED=YES -co COMPRESS=LZW -co BLOCKXSIZE=512 -co BLOCKYSIZE=512
         -co COPY_SRC_OVERVIEWS=YES --config  GDAL_TIFF_OVR_BLOCKSIZE 512
     """.split()
