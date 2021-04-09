@@ -98,8 +98,9 @@ def _parseLbl(values_txt):
         key_value = fields[0]
         fill_value = fields[-1].replace('"',"").rstrip()
         if 'DATA_SET_ID' == key_value:
-            img_header['datasetId']   = fill_value.replace("-","_").replace(".","_")
-            img_header['observationMode'] = img_header['datasetId'].split("_")[4]
+            l_datasetId = fill_value.replace("-","_").replace(".","_").split("_")
+            img_header['datasetId'] = "_".join(l_datasetId[0:3:2])
+            img_header['observationMode'] = l_datasetId[4]
 
         elif 'PRODUCT_ID' == key_value:
             img_header['idFromProvider'] = fill_value
