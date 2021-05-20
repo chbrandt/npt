@@ -50,13 +50,28 @@ def _run_props(properties, output_path, map_projection, tmpdir):
 
 
 #TODO: Add argument to set docker container to run --e.g., isis3-- commands
-def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None, cog=True):
+def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None, cog=True, make_dirs=True):
     # Create a temp dir for the processing
     import shutil
     import tempfile
+
+    if tmpdir and not os.path.isdir(tmpdir):
+        if make_dirs:
+            os.makedirs(tmpdir, exist_ok=True)
+        else:
+            print("Path '{}' does not exist.".format(tmpdir))
+            return None
+
     if tmpdir:
         assert os.path.isdir(tmpdir), """Given tmpdir '{}' does not exist""".format(tmpdir)
         tempfile.tempdir = tmpdir
+
+    if output_path and not os.path.isdir(output_path):
+        if make_dirs:
+            os.makedirs(output_path, exist_ok=True)
+        else:
+            print("Path '{}' does not exist.".format(output_path))
+            return None
 
     assert os.path.isdir(output_path), """Given output_path '{}' does not exist""".format(output_path)
 
@@ -91,7 +106,7 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
         #       Functions in FORMAT and CALIBRATION, for example, could use a
         #       container 'isis3', whereas the FORMATting to TIFF, could use a
         #       different container, 'gispy' with "gdal" in it (not in 'isis3')
-        
+
         # CALIBRATION
         from npt.isis import calibration
         f_cal = _add_file_subextension(f_cub, 'cal')
