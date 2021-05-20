@@ -7,7 +7,7 @@ from . import log
 from npt.pds.ode import ODE
 
 
-def run(bounding_box, dataset_id, output_geojson=None, contains=False):
+def run(bounding_box, dataset_id, output_geojson=None, contains=False, how='intersect'):
     """
     Write GeoJSON with products intersecting 'bounding_box'
 
@@ -21,6 +21,9 @@ def run(bounding_box, dataset_id, output_geojson=None, contains=False):
         Filename for the GeoJSON containing found products as Features.
     """
     output_filename = output_geojson
+    if contains:
+        how = 'contains'
+    contains = True if 'contain' in how else False
     if not bounding_box:
         return None
     products = query_footprints(bbox=bounding_box, dataset=dataset_id, contains=contains)
@@ -32,6 +35,8 @@ def run(bounding_box, dataset_id, output_geojson=None, contains=False):
     return products
 
 query2geojson = run
+bbox = run
+
 
 def query_footprints(bbox, dataset=None, contains=False,
                      target='mars', host=None, instr=None, ptype=None):

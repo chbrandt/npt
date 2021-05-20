@@ -1,3 +1,5 @@
+from npt.pipelines.search import *
+
 #
 # """
 # Search interface:
