@@ -28,3 +28,7 @@ def init_spice(filename):
 def isis2tiff(filename_in, filename_out, cog=False):
     # return isissh.isis2std(FROM=filename_in, TO=filename_out, FORMAT='TIFF')
     return raster.to_tiff(filename_in, filename_out, format_in='ISIS', cog=cog)
+
+def jpeg2tiff(filename_in, filename_out, cog=False):
+    # return isissh.isis2std(FROM=filename_in, TO=filename_out, FORMAT='TIFF')
+    return raster.to_tiff(filename_in, filename_out, format_in='JP2OpenJPEG', cog=cog)
