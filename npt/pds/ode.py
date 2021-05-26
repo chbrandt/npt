@@ -19,9 +19,10 @@ DESCRIPTORS = {
         'browse_thumbnail': ('Description', 'THUMBNAIL')
     },
     'hrsc': {
-        'product_image': ('Description', 'PRODUCT DATA FILE WITH LABEL'),
-        'browse_image': ('Description', 'BROWSE IMAGE'),
-        'product_shapefiles': ('Description', 'PRODUCT FOOTPRINT SHAPEFILES (TAR.GZ) *')
+        'product_image': ('Description', 'PRODUCT DATA FILE'),
+        'product_label': ('Description', 'PRODUCT LABEL FILE'),
+        'browse_image': ('Description', 'BROWSE'),
+        'browse_thumbnail': ('Description', 'THUMBNAIL')
     }
 }
 
