@@ -15,6 +15,7 @@ from npt.pipelines import Download
 from npt.utils import geojson
 
 from npt.pipelines import Processing
+from npt.pipelines import Mosaic
 
 
 
@@ -81,8 +82,7 @@ def search(bbox, dataset, output, provider, contains):
 @argument('basepath')
 @option('--output', metavar='<.geojson>', default='', help="GeoJSON filename with query results")
 @option('--progress/--silent', default=True, help="Print download progress")
-@option('--parallel/--serial', default=False, help="Download in parallel")
-def download(geojson_file, basepath, output, progress, parallel):
+def download(geojson_file, basepath, output, progress):
     """
     Download features' image_url/label_url data products
     """
@@ -103,10 +103,8 @@ def download(geojson_file, basepath, output, progress, parallel):
 @argument('geojson_file')
 @argument('basepath')
 @option('--output', metavar='<.geojson>', default='', help="GeoJSON filename with query results")
-@option('--parallel/--serial', default=False, help="Process in parallel")
-@option('--docker-isis', default=None, help="ISIS3 Docker container to use")
 @option('--tmpdir', default=None, help="Temp dir to use during processing")
-def process(geojson_file, basepath, parallel, docker_isis, tmpdir, output):
+def process(geojson_file, basepath, output, tmpdir):
     """
     WIP
     """
@@ -127,13 +125,67 @@ def process(geojson_file, basepath, parallel, docker_isis, tmpdir, output):
 
 
 @main.command()
-@argument('filespath')
+@argument('geojson_file')
 @argument('basepath')
-def mosaic(filespath, basepath):
+@option('--output', metavar='<.geojson>', default='', help="GeoJSON filename with query results")
+@option('--tmpdir', default=None, help="Temp dir to use during processing")
+def mosaic(geojson_file, basepath, output, tmpdir):
     """
-    TBD
+    Make mosaic from files in 'input_geojson' file. Write GeoJSON with mosaic feature.
     """
-    raise NotImplementedError
+    import geopandas
+
+    gdf = geopandas.read_file(geojson_file)
+    log.info("{:d} features read".format(len(gdf)))
+
+    filenames = list(gdf['tiff_path'])
+
+    geometry = [gdf.geometry.unary_union]
+    c_lon,c_lat = geometry[0].centroid.coords.xy
+    c_lon = '{:03d}'.format(int(c_lon[0]))
+    c_lat = '{:03d}'.format(int(c_lat[0]))
+    # print("GEOMETRY CENTROID:", c_lon, c_lat)
+
+    properties = {}
+    for p in gdf.columns:
+        if len(gdf[p].unique()) == 1:
+            val = list(gdf[p].unique())
+        else:
+            val = None
+        properties[p] = val
+    properties['mosaic_sources'] = [','.join(list(gdf['id']))]
+
+    ngdf = geopandas.GeoDataFrame(properties, geometry=geometry)
+    _rec = ngdf.iloc[0]
+    mosaic_filename = f"mosaic_{_rec['inst'].lower()}_lon{c_lon}_lat{c_lat}.tif"
+
+    mosaic_path = Mosaic.mosaic(filenames, output_path=basepath,
+                                mosaic_filename=mosaic_filename)
+
+    ngdf['tiff_path'] = [mosaic_path]
+    # Define the new feature (mosaic)
+    # filenames = ','.join(filenames)
+    # feature = {
+    #     'properties': {
+    #         'mosaic_path': mosaic_path,
+    #         'mosaic_sources': filenames,
+    #     },
+    #     'geometry': None
+    # }
+    # products = [feature]
+    # ngdf = gdf.iloc[:0].copy()
+    # ngdf['geometry'] = gdf.geometry.unary_union
+    # ngdf['tiff_path'] = mosaic_path
+    # ngdf['mosaic_sources'] = ','.join(list(gdf['id']))
+
+    print(ngdf)
+    if output:
+        # json_2_geojson(products, filename=output)
+        ngdf.to_file(output, driver='GeoJSON')
+    else:
+        import json
+        # click.echo(json.dumps(products, indent=2))
+        click.echo(ngdf.to_json(indent=2))
 
 
 

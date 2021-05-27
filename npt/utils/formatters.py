@@ -64,6 +64,8 @@ def geojson_2_geodataframe(records):
             except Exception as err:
                 log.error(err)
                 raise err
+        elif geom is None:
+            pass
         else:
             try:
                 geom = shapely.geometry.asShape(geom)
