@@ -133,61 +133,7 @@ def mosaic(geojson_file, basepath, output, tmpdir):
     """
     Make mosaic from files in 'input_geojson' file. Write GeoJSON with mosaic feature.
     """
-    import geopandas
-
-    gdf = geopandas.read_file(geojson_file)
-    log.info("{:d} features read".format(len(gdf)))
-
-    filenames = list(gdf['tiff_path'])
-
-    geometry = [gdf.geometry.unary_union]
-    c_lon,c_lat = geometry[0].centroid.coords.xy
-    c_lon = '{:03d}'.format(int(c_lon[0]))
-    c_lat = '{:03d}'.format(int(c_lat[0]))
-    # print("GEOMETRY CENTROID:", c_lon, c_lat)
-
-    properties = {}
-    for p in gdf.columns:
-        if len(gdf[p].unique()) == 1:
-            val = list(gdf[p].unique())
-        else:
-            val = None
-        if val:
-            properties[p] = val
-    properties['mosaic_sources'] = [','.join(list(gdf['id']))]
-
-    ngdf = geopandas.GeoDataFrame(properties, geometry=geometry)
-    _rec = ngdf.iloc[0]
-    mosaic_filename = f"mosaic_{_rec['inst'].lower()}_lon{c_lon}_lat{c_lat}.tif"
-
-    mosaic_path = Mosaic.mosaic(filenames, output_path=basepath,
-                                mosaic_filename=mosaic_filename)
-
-    ngdf['tiff_path'] = [mosaic_path]
-    # Define the new feature (mosaic)
-    # filenames = ','.join(filenames)
-    # feature = {
-    #     'properties': {
-    #         'mosaic_path': mosaic_path,
-    #         'mosaic_sources': filenames,
-    #     },
-    #     'geometry': None
-    # }
-    # products = [feature]
-    # ngdf = gdf.iloc[:0].copy()
-    # ngdf['geometry'] = gdf.geometry.unary_union
-    # ngdf['tiff_path'] = mosaic_path
-    # ngdf['mosaic_sources'] = ','.join(list(gdf['id']))
-
-    print(ngdf)
-    if output:
-        # json_2_geojson(products, filename=output)
-        ngdf.to_file(output, driver='GeoJSON')
-    else:
-        import json
-        # click.echo(json.dumps(products, indent=2))
-        click.echo(ngdf.to_json(indent=2))
-
+    return Mosaic.run(geojson_file, basepath, output, tmpdir)
 
 
 if __name__ == '__main__':
