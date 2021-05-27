@@ -152,7 +152,8 @@ def mosaic(geojson_file, basepath, output, tmpdir):
             val = list(gdf[p].unique())
         else:
             val = None
-        properties[p] = val
+        if val:
+            properties[p] = val
     properties['mosaic_sources'] = [','.join(list(gdf['id']))]
 
     ngdf = geopandas.GeoDataFrame(properties, geometry=geometry)
