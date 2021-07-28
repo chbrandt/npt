@@ -1,7 +1,7 @@
 import requests
 
 from npt import log
-from npt import query
+# from npt import query
 from npt import datasets
 
 API_URL = 'https://oderest.rsl.wustl.edu/live2'
@@ -29,7 +29,8 @@ DESCRIPTORS = {
 
 DB_ID = 'usgs_ode'
 
-class ODE(query.Query):
+# class ODE(query.Query):
+class ODE:
     _result = None
     def __init__(self, target, mission, instrument, product_type):
         super().__init__()
@@ -205,6 +206,29 @@ def readout_product_meta(product_json):
     product['inst'] = product_json['iid']
     # <pt>RDRV11</pt>
     product['type'] = product_json['pt']
+
+    fields = [
+        'Target_name',
+        'Footprints_cross_meridian',
+        'Map_scale', 
+        'Center_latitude',
+        'Center_longitude',
+        'Easternmost_longitude',
+        'Westernmost_longitude',
+        'Minimum_latitude',
+        'Maximum_latitude',
+        'Emission_angle',
+        'Incidence_angle',
+        'Phase_angle',
+        'Solar_longitude',
+        'Observation_time',
+        'Product_creation_time',
+        'UTC_start_time',
+        'UTC_stop_time'
+    ]
+    for key in fields:
+        product[key] = product_json[key]
+
     return product
 
 
@@ -235,7 +259,3 @@ def request_product(PRODUCTID, api_endpoint):
     #payload.update({'pretty':True})
     return requests.get(api_endpoint, params=payload)
 
-
-# def requested_product_files(request):
-#     product_files = request.json()['ODEResults']['Products']['Product']['Product_files']['Product_file']
-#     return product_files

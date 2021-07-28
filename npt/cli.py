@@ -57,22 +57,15 @@ def search(bbox, dataset, output, provider, contains):
     """
     bbox = bbox.replace('[','').replace(']','')
     bounding_box = bbox_string_2_dict(bbox)
-    # products = search_bbox(bbox=bounding_box,
-    #                        dataset=dataset_id,
-    #                        provider=provider,
-    #                        contains=contains)
     if output:
-        # json_2_geojson(products, filename=output)
         products = Search.run(bounding_box=bounding_box,
                            dataset_id=dataset,
-                           # provider=provider,
-                           geojson_filename=output,
+                           output_geojson=output,
                            contains=contains)
     else:
         import json
         products = Search.run(bounding_box=bounding_box,
                            dataset_id=dataset,
-                           # provider=provider,
                            contains=contains)
         click.echo(json.dumps(products, indent=2))
 

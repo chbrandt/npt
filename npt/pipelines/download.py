@@ -54,6 +54,8 @@ def run_props(properties, base_path, progressbar=False):
     else:
         metaDict = createImgDict(properties['image_path'])
 
+    metaDict.update(map_meta_meeo(properties))
+
     properties.update(metaDict)
     return properties
 
@@ -98,42 +100,56 @@ def _parseLbl(values_txt):
         key_value = fields[0]
         fill_value = fields[-1].replace('"',"").rstrip()
         if 'DATA_SET_ID' == key_value:
-            l_datasetId = fill_value.replace("-","_").replace(".","_").split("_")
-            img_header['datasetId'] = "_".join(l_datasetId[0:3:2])
-            img_header['observationMode'] = l_datasetId[4]
+            # l_datasetId = fill_value.replace("-","_").replace(".","_").split("_")
+            # img_header['datasetId'] = "_".join(l_datasetId[0:3:2])
+            # img_header['observationMode'] = l_datasetId[4]
+            pass
 
-        elif 'PRODUCT_ID' == key_value:
-            img_header['idFromProvider'] = fill_value
+        # elif 'PRODUCT_ID' == key_value:
+        #     img_header['idFromProvider'] = fill_value
 
         elif 'INSTRUMENT_HOST_NAME' == key_value:
             img_header['instrumentHostName'] = fill_value
-            img_header['spacecraftId'] = "".join([s[0].upper() for s in fill_value.split()])
+            # img_header['spacecraftId'] = "".join([s[0].upper() for s in fill_value.split()])
 
         elif 'INSTRUMENT_NAME' == key_value:
             img_header['instrumentName'] = fill_value
 
-        elif 'INSTRUMENT_ID' == key_value:
-            img_header['instrumentId'] = fill_value
+        # elif 'INSTRUMENT_ID' == key_value:
+        #     img_header['instrumentId'] = fill_value
 
-        elif 'TARGET_NAME' == key_value:
-            img_header['targetName'] = fill_value
+        # elif 'TARGET_NAME' == key_value:
+        #     img_header['targetName'] = fill_value
 
         elif 'MISSION_PHASE_NAME' == key_value:
             img_header['missionPhaseName'] = fill_value
 
-        elif 'PRODUCT_CREATION_TIME' == key_value:
-            img_header['productCreationTime'] = fill_value
+        # elif 'PRODUCT_CREATION_TIME' == key_value:
+        #     img_header['productCreationTime'] = fill_value
 
-        elif 'START_TIME' == key_value:
-            img_header['startTime'] = fill_value.replace(" ", "")
+        # elif 'START_TIME' == key_value:
+        #     img_header['startTime'] = fill_value.replace(" ", "")
 
-        elif 'STOP_TIME' == key_value:
-            img_header['stopTime'] = fill_value.replace(" ", "")
+        # elif 'STOP_TIME' == key_value:
+        #     img_header['stopTime'] = fill_value.replace(" ", "")
 
 
-    img_header['solarDistance'] = ""
-    img_header['solarLongitude'] = ""
+    # img_header['solarDistance'] = ""
+    # img_header['solarLongitude'] = ""
 
     _keys = list(img_header.keys())
     _keys.sort()
     return {k:img_header[k] for k in _keys}
+
+def map_meta_meeo(props):
+    meta = {}
+    meta['idFromProvider'] = props['id']
+    meta['observationMode'] = props['type']
+    meta['instrumentId'] = props['inst']
+    meta['spacecraftId'] = props['mission']
+    meta['datasetId'] = f"{props['mission']}_{props['inst']}"
+    meta['targetName'] = props['Target_name']
+    meta['productCreationTime'] = props['Product_creation_time']
+    meta['startTime'] = props['UTC_start_time']
+    meta['stopTime'] = props['UTC_stop_time']
+    return meta
