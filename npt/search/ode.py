@@ -32,41 +32,21 @@ DB_ID = 'usgs_ode'
 # class ODE(query.Query):
 class ODE:
     _result = None
-    def __init__(self, target, mission, instrument, product_type):
+    def __init__(self, dataset):
+        """
+        dataset string example: 'mars/mro/ctx/edr'
+        """
         super().__init__()
-        self.set_dataset(target, mission, instrument, product_type)
-
-    def list_datasets(self):
-        # return datasets.ode.list()
-        _datasets = datasets.db.query("""
-            SELECT * FROM datasets WHERE db_id == '{db_id}'
-            """.format(db_id=DB_ID))
-
-    def set_dataset(self, target, host, instr, ptype, dataset=None):
-        """
-        Args:
-            target:
-            host:
-            instr:
-            ptype:
-
-        Returns:
-            ODE
-        """
-        if dataset is None:
-            msg = "Either set 'dataset' or all the others."
-            assert all([target, host, instr, ptype]), msg
-        self.host = host
-        self.instr = instr
-        self.ptype = ptype
+        target, mission, instrument, product_type = dataset.split('/')
         self.target = target
-        return self
+        self.mission = mission
+        self.instrument = instrument
+        self.product_type = product_type
 
-    def query_bbox(self, bbox, contains=False):
+    def query(self, bbox, contains=False):
         """
         Return list of found products (in dictionaries)
 
-        dataset be like: 'mro/hirise/rdrv11'
         bbox: {'minlat': -0.5, 'maxlat': 0.5, 'westlon': 359.5, 'eastlon': 0.5}
         """
 
@@ -74,13 +54,18 @@ class ODE:
             "Expected 'bbox' with keys: 'minlat','maxlat','westlon','eastlon'"
         )
 
-        req = request_products(bbox, self.target, self.host, self.instr, self.ptype, contains=contains)
+        req = request_products(bbox,
+                                self.target,
+                                self.mission,
+                                self.instr,
+                                self.ptype,
+                                contains=contains)
         result = req.json()
         self._result = result
         status = result['ODEResults']['Status']
         if status.lower() != 'success':
             print('oops, request failed. check `result`')
-        return req
+        return self
 
     def count(self):
         if self._result is None:
@@ -210,7 +195,7 @@ def readout_product_meta(product_json):
     fields = [
         'Target_name',
         'Footprints_cross_meridian',
-        'Map_scale', 
+        'Map_scale',
         'Center_latitude',
         'Center_longitude',
         'Easternmost_longitude',
@@ -258,4 +243,3 @@ def request_product(PRODUCTID, api_endpoint):
     )
     #payload.update({'pretty':True})
     return requests.get(api_endpoint, params=payload)
-

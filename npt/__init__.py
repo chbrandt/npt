@@ -1,4 +1,7 @@
 from ._log import log
+
+from . import datasets
+
 # from . import isis
 # from ._db import db
 
