@@ -9,8 +9,6 @@ API_URL = 'https://oderest.rsl.wustl.edu/live2'
 DESCRIPTORS = {
     'ctx': {
         'product_image': ('Description','PRODUCT DATA FILE WITH LABEL'),
-        'browse_image': ('Description','BROWSE IMAGE'),
-        'browse_thumbnail': ('Description','THUMBNAIL IMAGE')
     },
     'hirise': {
         'product_image': ('Description', 'PRODUCT DATA FILE'),
@@ -21,11 +19,29 @@ DESCRIPTORS = {
     'hrsc': {
         'product_image': ('Description', 'PRODUCT DATA FILE'),
         'product_label': ('Description', 'PRODUCT LABEL FILE'),
-        'browse_image': ('Description', 'BROWSE'),
-        'browse_thumbnail': ('Description', 'THUMBNAIL')
+        'browse_image': ('Description', 'BROWSE IMAGE'),
     }
 }
 
+METADATA = [
+    'Target_name',
+    'Footprints_cross_meridian',
+    'Map_scale',
+    'Center_latitude',
+    'Center_longitude',
+    'Easternmost_longitude',
+    'Westernmost_longitude',
+    'Minimum_latitude',
+    'Maximum_latitude',
+    'Emission_angle',
+    'Incidence_angle',
+    'Phase_angle',
+    'Solar_longitude',
+    'Observation_time',
+    'Product_creation_time',
+    'UTC_start_time',
+    'UTC_stop_time'
+]
 
 DB_ID = 'usgs_ode'
 
@@ -36,14 +52,13 @@ class ODE:
         """
         dataset string example: 'mars/mro/ctx/edr'
         """
-        super().__init__()
         target, mission, instrument, product_type = dataset.split('/')
         self.target = target
         self.mission = mission
-        self.instrument = instrument
-        self.product_type = product_type
+        self.instr= instrument
+        self.ptype = product_type
 
-    def query(self, bbox, contains=False):
+    def query(self, bbox, match='intersect'):
         """
         Return list of found products (in dictionaries)
 
@@ -54,6 +69,8 @@ class ODE:
             "Expected 'bbox' with keys: 'minlat','maxlat','westlon','eastlon'"
         )
 
+        contains = True if 'contain' in match else False
+
         req = request_products(bbox,
                                 self.target,
                                 self.mission,
@@ -61,10 +78,11 @@ class ODE:
                                 self.ptype,
                                 contains=contains)
         result = req.json()
-        self._result = result
-        status = result['ODEResults']['Status']
-        if status.lower() != 'success':
-            print('oops, request failed. check `result`')
+        if result['ODEResults']['Status'].lower() != 'success':
+            errmsg = result['ODEResults']['Error']
+            print('Request failed:', str(errmsg))
+        else:
+            self._result = result
         return self
 
     def count(self):
@@ -76,11 +94,11 @@ class ODE:
         except:
             return 0
 
-    def read_products(self, request):
-        products = read_products(request)
-        return products
-
-    def parse_products(self, products, schema):
+    def parse(self, schema):
+        if not self._result:
+            return None
+        products = self._result['ODEResults']['Products']['Product']
+        assert isinstance(products, list), "Was expecting 'list', got '{}' instead".format(type(products))
         if not products:
             print("No products found")
             return None
@@ -100,30 +118,25 @@ class ODE:
                                            descriptors=DESCRIPTORS[self.instr])
                 _lfile = _lfile['URL']
             except KeyError as err:
-                _lfile = _pfile
+                _lfile = None
+
+            try:
+                _bfile = find_product_file(product_files=_files,
+                                           product_type='browse_image',
+                                           descriptors=DESCRIPTORS[self.instr])
+                _bfile = _bfile['URL']
+            except KeyError as err:
+                _bfile = None
 
             _dout = _meta
             _dout['geometry'] = _fprint
             _dout['image_url'] = _pfile
             _dout['label_url'] = _lfile
+            _dout['browse_url'] = _bfile
             products_output.append(_dout)
 
         print("{} products found".format(len(products_output)))
         return products_output
-
-
-# ODEQuery.read_products
-def read_products(request):
-    if not (request.status_code == 200
-            and request.json()['ODEResults']['Status'].lower() == 'success'):
-        return None
-    try:
-        products = request.json()['ODEResults']['Products']['Product']
-        assert isinstance(products, list), "Was expecting 'list', got '{}' instead".format(type(products))
-    except:
-        log.info("No products were found")
-        products = None
-    return products
 
 
 # USED by 'query_bbox'
@@ -192,27 +205,12 @@ def readout_product_meta(product_json):
     # <pt>RDRV11</pt>
     product['type'] = product_json['pt']
 
-    fields = [
-        'Target_name',
-        'Footprints_cross_meridian',
-        'Map_scale',
-        'Center_latitude',
-        'Center_longitude',
-        'Easternmost_longitude',
-        'Westernmost_longitude',
-        'Minimum_latitude',
-        'Maximum_latitude',
-        'Emission_angle',
-        'Incidence_angle',
-        'Phase_angle',
-        'Solar_longitude',
-        'Observation_time',
-        'Product_creation_time',
-        'UTC_start_time',
-        'UTC_stop_time'
-    ]
-    for key in fields:
-        product[key] = product_json[key]
+    try:
+        for key in METADATA:
+            product[key] = product_json.get(key, None)
+    except Exception as err:
+        print(product_json)
+        raise
 
     return product
 
@@ -228,8 +226,8 @@ def find_product_file(product_files, product_type, descriptors=DESCRIPTORS):
             else
             desc_val_token in pf[desc_key])
     pfl = list(filter(_foo, product_files))
-    multiple_matches = "I was expecting only one Product matching ptype '{}' bu got '{}'."
-    assert len(pfl) == 1, multiple_matches.format(product_type, len(pfl))
+    multiple_matches = "I was expecting one Product matching ptype '{}' but got '{}' in {}"
+    assert len(pfl) == 1, multiple_matches.format(product_type, len(pfl), product_files)
     return pfl[0]
 
 

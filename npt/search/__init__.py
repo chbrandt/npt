@@ -1,9 +1,9 @@
 """
 Query USGS/ODE API for image data products
 """
-from . import log
+from npt import log
 
-import os
+# import os
 # import shapely
 # import geopandas as gpd
 
