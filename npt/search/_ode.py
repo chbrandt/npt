@@ -23,6 +23,12 @@ DESCRIPTORS = {
     }
 }
 
+FILTERS = {
+    'ctx': ("^(CRU|MOI|T01)_", False),
+    'hirise': ("^(PSP|ESP)_.*(RED)", True),
+    'hrsc': (".*_ND3.*", True)
+}
+
 METADATA = [
     'Target_name',
     'Footprints_cross_meridian',
@@ -69,7 +75,7 @@ class ODE:
             "Expected 'bbox' with keys: 'minlat','maxlat','westlon','eastlon'"
         )
 
-        contains = True if 'contain' in match else False
+        contains = False if 'intersect' in match else True
 
         req = request_products(bbox,
                                 self.target,
@@ -94,7 +100,7 @@ class ODE:
         except:
             return 0
 
-    def parse(self, schema):
+    def parse(self):
         if not self._result:
             return None
         products = self._result['ODEResults']['Products']['Product']
@@ -133,11 +139,22 @@ class ODE:
             _dout['image_url'] = _pfile
             _dout['label_url'] = _lfile
             _dout['browse_url'] = _bfile
-            products_output.append(_dout)
+
+            # Apply filters to product-ID
+            if self.instr not in FILTERS or select_product(_dout, FILTERS[self.instr]):
+                products_output.append(_dout)
 
         print("{} products found".format(len(products_output)))
         return products_output
 
+
+def select_product(meta, filter_rule):
+    import re
+    expression, present = filter_rule
+    regex = re.compile(expression, re.IGNORECASE)
+    product_id = meta['id']
+    _match = regex.match(product_id)
+    return bool(_match) is present
 
 # USED by 'query_bbox'
 def request_products(bbox, target=None, host=None, instr=None, ptype=None, contains=False):

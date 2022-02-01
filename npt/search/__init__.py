@@ -9,7 +9,7 @@ from npt import log
 
 
 
-def ode(dataset: str, bbox: dict, match: str = 'intersect', filter: str = None):
+def ode(dataset: str, bbox: dict, match: str = 'intersect'):
     """
     Return GeoJSON with found data products as features
 
@@ -19,13 +19,13 @@ def ode(dataset: str, bbox: dict, match: str = 'intersect', filter: str = None):
             Dictionary keys: minlat, maxlat, westlon, eastlon;
             Latitude/longitude values range: (-90:90, -180:180)
     - match: how to consider overlapping matching footprints.
-             Options are: 'interset', 'contain'
+             Options are: 'intersect', 'contain'
     - filter: Not implemented yet.
     """
     from npt.search._ode import ODE
 
-    schema = {'meta':None, 'files':None, 'footprints':None}
-    prods = ODE(dataset).query(bbox=bbox, match=match).parse(schema)
+    # schema = {'meta':None, 'files':None, 'footprints':None}
+    prods = ODE(dataset).query(bbox=bbox, match=match).parse()
 
     return prods
 
