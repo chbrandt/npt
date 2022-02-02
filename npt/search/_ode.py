@@ -29,6 +29,10 @@ FILTERS = {
     'hrsc': (".*_ND3.*", True)
 }
 
+FOOTPRINT_GEOMETRY_FIELD = 'Footprint_GL_geometry'
+# FOOTPRINT_GEOMETRY_FIELD = 'Footprint_C0_geometry'
+# FOOTPRINT_GEOMETRY_FIELD = 'Footprint_geometry'
+
 METADATA = [
     'Target_name',
     'Footprints_cross_meridian',
@@ -51,8 +55,40 @@ METADATA = [
 
 DB_ID = 'usgs_ode'
 
-# class ODE(query.Query):
-class ODE:
+
+from collections import UserList
+
+class ODEProducts(list):
+    def __init__(self):
+        super()
+
+    def to_dataframe(self):
+        import shapely
+        import geopandas
+        from copy import deepcopy
+
+        products = []
+        for prod in self:
+            product = deepcopy(prod)
+            try:
+                _geom = shapely.wkt.loads(product['geometry'])
+                if (type(_geom) == shapely.geometry.GeometryCollection
+                    or type(_geom) == shapely.geometry.MultiPolygon):
+                    _geom = _geom.envelope
+                assert type(_geom) == shapely.geometry.Polygon
+            # except TypeError as err:
+            except Exception as err:
+                print("Error in: ", product)
+                _geom = None
+            finally:
+                product['geometry'] = _geom
+            products.append(product)
+
+        gdf = geopandas.GeoDataFrame(products)
+        return gdf
+
+
+class ODE(object):
     _result = None
     def __init__(self, dataset):
         """
@@ -91,25 +127,29 @@ class ODE:
             self._result = result
         return self
 
-    def count(self):
+    def _count(self):
         if self._result is None:
             return None
         try:
-            cnt = self._result['Count']
-            return cnt
+            cnt = int(self._result['ODEResults']['Count'])
         except:
-            return 0
+            print(self._result)
+            raise
+        return cnt
 
     def parse(self):
         if not self._result:
             return None
-        products = self._result['ODEResults']['Products']['Product']
+        if self._count() > 1:
+            products = self._result['ODEResults']['Products']['Product']
+        else:
+            products = [self._result['ODEResults']['Products']['Product']]
         assert isinstance(products, list), "Was expecting 'list', got '{}' instead".format(type(products))
         if not products:
             print("No products found")
             return None
 
-        products_output = []
+        products_output = ODEProducts()
         for i,product in enumerate(products):
             _meta = readout_product_meta(product)
             _files = readout_product_files(product)
@@ -206,7 +246,7 @@ def readout_product_footprint(product_json):
     # when the footprint cross the meridian in "c180" or "c0" frames
     #product_geom = request.json()['ODEResults']['Products']['Product']['Footprint_geometry']
     #product_geom = request.json()['ODEResults']['Products']['Product']['Footprint_C0_geometry']
-    product_geom = product_json['Footprint_GL_geometry']
+    product_geom = product_json[FOOTPRINT_GEOMETRY_FIELD]
     return product_geom
 
 

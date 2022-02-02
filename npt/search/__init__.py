@@ -3,15 +3,10 @@ Query USGS/ODE API for image data products
 """
 from npt import log
 
-# import os
-# import shapely
-# import geopandas as gpd
-
-
 
 def ode(dataset: str, bbox: dict, match: str = 'intersect'):
     """
-    Return GeoJSON with found data products as features
+    Return GeoDataFrame with found data products as features
 
     Input:
     - dataset: name of the dataset (see `npt.datasets`)
@@ -24,10 +19,10 @@ def ode(dataset: str, bbox: dict, match: str = 'intersect'):
     """
     from npt.search._ode import ODE
 
-    # schema = {'meta':None, 'files':None, 'footprints':None}
-    prods = ODE(dataset).query(bbox=bbox, match=match).parse()
+    prods = ODE(dataset).query(bbox=bbox, match=match).parse().to_dataframe()
 
     return prods
+
 
 
 # def run(bounding_box, dataset_id, output_geojson=None, contains=False, how='intersect'):
@@ -56,51 +51,3 @@ def ode(dataset: str, bbox: dict, match: str = 'intersect'):
 #         gdf = write_geojson(products, filename=output_filename)
 #         return gdf
 #     return products
-
-
-def query_footprints(bbox, dataset=None, contains=False,
-                     target='mars', host=None, instr=None, ptype=None):
-    """
-    Return list of found products (in dictionaries)
-
-    dataset be like: 'mro/hirise/rdrv11'
-    bbox: {'minlat': -0.5, 'maxlat': 0.5, 'westlon': 359.5, 'eastlon': 0.5}
-    """
-    if dataset:
-        target,host,instr,ptype = dataset.split('/')
-
-    ode = ODE(target,host,instr,ptype)
-
-    req = ode.query_bbox(bbox, contains=contains)
-
-    products = ode.read_products(req)
-
-    schema = {'meta':None, 'files':None, 'footprints':None}
-    products = ode.parse_products(products, schema)
-    return products
-
-
-def write_geojson(products, filename):
-    """
-    Write products to a GeoJSON 'filename'. Return GeoPandas dataframe.
-
-    > Note: This function modifies field 'geometry' from 'products'
-
-    products: list of product records (from search_footprints)
-    filename: GeoJSON filename for the output
-    """
-    assert isinstance(products, list), "Expected 'products' to be a list"
-    assert filename and filename.strip() != '', "Give me a valid filename"
-
-    for prod in products:
-        try:
-            prod['geometry'] = shapely.wkt.loads(prod['geometry'])
-        except TypeError as err:
-            log.info("Error in: ", prod)
-            raise err
-
-    gdf = gpd.GeoDataFrame(products)
-
-    gdf.to_file(filename, driver='GeoJSON')
-    log.info("File '{}' written.".format(filename))
-    return gdf
