@@ -6,28 +6,18 @@ from npt import datasets
 
 API_URL = 'https://oderest.rsl.wustl.edu/live2'
 
-DESCRIPTORS = {
-    'ctx': {
-        'product_image': ('Description','PRODUCT DATA FILE WITH LABEL'),
-    },
-    'hirise': {
-        'product_image': ('Description', 'PRODUCT DATA FILE'),
-        'product_label': ('Description', 'PRODUCT LABEL FILE'),
-        'browse_image': ('Description', 'BROWSE'),
-        'browse_thumbnail': ('Description', 'THUMBNAIL')
-    },
-    'hrsc': {
-        'product_image': ('Description', 'PRODUCT DATA FILE'),
-        'product_label': ('Description', 'PRODUCT LABEL FILE'),
-        'browse_image': ('Description', 'BROWSE IMAGE'),
-    }
+_DESCRIPTORS_TEMPLATE = {
+    'product_image': ('Description', 'PRODUCT DATA FILE'),
+    'product_label': ('Description', 'PRODUCT LABEL FILE'),
+    'browse_image': ('Description', 'BROWSE IMAGE'),
+    'browse_thumbnail': ('Description', 'THUMBNAIL IMAGE')
 }
 
-FILTERS = {
-    'ctx': ("^(CRU|MOI|T01)_", False),
-    'hirise': ("^(PSP|ESP)_.*(RED)", True),
-    'hrsc': (".*_ND3.*", True)
-}
+# FILTERS = {
+#     'ctx': ("^(CRU|MOI|T01)_", False),
+#     'hirise': ("^(PSP|ESP)_.*(RED)", True),
+#     'hrsc': (".*_ND3.*", True)
+# }
 
 COORDS_REF = {
     'C0': 'Footprint_C0_geometry',  # -180:+180
@@ -96,6 +86,8 @@ class ODE(object):
         dataset string example: 'mars/mro/ctx/edr'
         """
         target, mission, instrument, product_type = dataset.split('/')
+        assert dataset in datasets.list()
+        self.dataset = dataset
         self.target = target
         self.mission = mission
         self.instr= instrument
@@ -170,12 +162,14 @@ class ODE(object):
             _fprint = readout_product_footprint(product, self._ref_coords)
             _pfile = find_product_file(product_files=_files,
                                        product_type='product_image',
-                                       descriptors=DESCRIPTORS[self.instr])
+                                       # descriptors=DESCRIPTORS[self.instr])
+                                       descriptors=datasets.descriptors(self.dataset))
             _pfile = _pfile['URL']
             try:
                 _lfile = find_product_file(product_files=_files,
                                            product_type='product_label',
-                                           descriptors=DESCRIPTORS[self.instr])
+                                           # descriptors=DESCRIPTORS[self.instr])
+                                           descriptors=datasets.descriptors(self.dataset))
                 _lfile = _lfile['URL']
             except KeyError as err:
                 _lfile = None
@@ -183,7 +177,8 @@ class ODE(object):
             try:
                 _bfile = find_product_file(product_files=_files,
                                            product_type='browse_image',
-                                           descriptors=DESCRIPTORS[self.instr])
+                                           # descriptors=DESCRIPTORS[self.instr])
+                                           descriptors=datasets.descriptors(self.dataset))
                 _bfile = _bfile['URL']
             except KeyError as err:
                 _bfile = None
@@ -195,7 +190,8 @@ class ODE(object):
             _dout['browse_url'] = _bfile
 
             # Apply filters to product-ID
-            if self.instr not in FILTERS or select_product(_dout, FILTERS[self.instr]):
+            filters = datasets.filters(self.dataset)
+            if (not filters) or select_product(_dout, filters['product-id']):
                 products_output.append(_dout)
 
         print("{} products found".format(len(products_output)))
@@ -287,7 +283,7 @@ def readout_product_meta(product_json):
 
 
 # USED by 'parse_products'
-def find_product_file(product_files, product_type, descriptors=DESCRIPTORS):
+def find_product_file(product_files, product_type, descriptors):
     desc_key, desc_val = descriptors[product_type]
     is_val_regex = desc_val.strip()[-1]=='*'
     desc_val_token = desc_val[:-1].strip()
