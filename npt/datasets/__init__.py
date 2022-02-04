@@ -31,18 +31,35 @@ del importlib, pkgutil, sys
 
 _datasets = [
     {
+        "id": "{target}/{mission}/{instrument}/{product_type}",
         "target": "mars",
         "mission": "mro",
         "instrument": "ctx",
         "product_type": "edr",
-        "id": "{target}/{mission}/{instrument}/{product_type}"
     },
+
     {
+        "id": "{target}/{mission}/{instrument}/{product_type}",
         "target": "mars",
         "mission": "mro",
         "instrument": "hirise",
+        "product_type": "rdrv11",
+    },
+
+    {
+        "id": "{target}/{mission}/{instrument}/{product_type}",
+        "target": "mars",
+        "mission": "mex",
+        "instrument": "hrsc",
         "product_type": "rdrv3",
-        "id": "{target}/{mission}/{instrument}/{product_type}"
+    },
+
+    {
+        "id": "{target}/{mission}/{instrument}/{product_type}",
+        "target": "mars",
+        "mission": "mex",
+        "instrument": "hrsc",
+        "product_type": "refdr3",
     }
 ]
 
@@ -72,63 +89,6 @@ def _solve_datasets_references(dsets: list) -> list:
 # Overwrite '_datasets' with parsed/dereferenced version
 _datasets = _solve_datasets_references(_datasets)
 
-
 def list():
     for dset in _datasets:
         print(dset['id'])
-
-
-# class Datasets(object):
-#     """
-#     Manage datasets package<->db
-#     """
-#     _name = 'datasets'
-#     _schema = {'name': {'type': 'text', 'attr':'NOT NULL'},
-#                 'provider': {'type': 'text', 'attr':'NOT NULL'},
-#                 'id': {'type': 'integer', 'attr':'PRIMARY KEY'},
-#                 'target': {'type': 'text', 'attr':'NOT NULL'},
-#                 'mission': {'type': 'text', 'attr':'NOT NULL'},
-#                 'instrument': {'type': 'text', 'attr':'NOT NULL'},
-#                 'product_type': {'type': 'text', 'attr':'NOT NULL'},
-#                 }
-#
-#     def __init__(self, datasets=None):
-#         self.init_table()
-#         if datasets:
-#             self.insert_datasets(datasets)
-#
-#
-#     def init_table(self):
-#         _sql_create_datasets_table = """
-#             CREATE TABLE IF NOT EXISTS {table}
-#         """.format(table=self._name)
-#         _s = ','.join([
-#                     "{col} {typ} {att}".format(col=c, typ=d['type'], att=d['attr'])
-#                     for c,d in self._schema.items()
-#                 ])
-#         _sql_create_datasets_table += "({})".format(_s)
-#         npt.db.create_table(_sql_create_datasets_table)
-#
-#
-#     def insert_datasets(self, datasets):
-#         for dset in datasets:
-#             self.insert_dataset(dset)
-#
-#
-#     def insert_dataset(self, dataset):
-#         """
-#         dataset is a map column:value
-#
-#         # TODO: Columns must respect a schema.
-#         """
-#         cols,vals = list(dataset.items())
-#
-#         _sql_insert_dataset_record = """
-#             INSERT INTO {table}({cols}) VALUES({vals})
-#         """.format(table=self._name, cols=cols, vals=vals)
-#
-#         npt.db.insert_record(_sql_insert_dataset_record)
-#
-#
-# print(_datasets)
-# datasets = Datasets(_datasets)

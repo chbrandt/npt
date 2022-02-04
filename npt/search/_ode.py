@@ -29,9 +29,10 @@ FILTERS = {
     'hrsc': (".*_ND3.*", True)
 }
 
-FOOTPRINT_GEOMETRY_FIELD = 'Footprint_GL_geometry'
-# FOOTPRINT_GEOMETRY_FIELD = 'Footprint_C0_geometry'
-# FOOTPRINT_GEOMETRY_FIELD = 'Footprint_geometry'
+COORDS_REF = {
+    'C0': 'Footprint_C0_geometry',  # -180:+180
+    'C180': 'Footprint_GL_geometry' # 0:360
+}
 
 METADATA = [
     'Target_name',
@@ -100,7 +101,7 @@ class ODE(object):
         self.instr= instrument
         self.ptype = product_type
 
-    def query(self, bbox, match='intersect'):
+    def query(self, bbox, match='intersect', bbox_ref='C0'):
         """
         Return list of found products (in dictionaries)
 
@@ -112,6 +113,17 @@ class ODE(object):
         )
 
         contains = False if 'intersect' in match else True
+
+        assert bbox_ref in COORDS_REF.keys()
+        if bbox_ref == 'C0':
+            bbox = bbox.copy()
+            _wl = bbox['westlon']
+            _el = bbox['eastlon']
+            assert _wl < _el
+            bbox['westlon'] = _wl+360 if _wl < 0 else _wl
+            bbox['eastlon'] = _el+360 if _el < 0 else _el
+
+        assert bbox['westlon'] < bbox['eastlon']
 
         req = request_products(bbox,
                                 self.target,
@@ -125,6 +137,8 @@ class ODE(object):
             print('Request failed:', str(errmsg))
         else:
             self._result = result
+            self._ref_coords = bbox_ref
+
         return self
 
     def _count(self):
@@ -153,7 +167,7 @@ class ODE(object):
         for i,product in enumerate(products):
             _meta = readout_product_meta(product)
             _files = readout_product_files(product)
-            _fprint = readout_product_footprint(product)
+            _fprint = readout_product_footprint(product, self._ref_coords)
             _pfile = find_product_file(product_files=_files,
                                        product_type='product_image',
                                        descriptors=DESCRIPTORS[self.instr])
@@ -241,12 +255,12 @@ def readout_product_files(product_json):
 
 
 # USED by 'parse_products'
-def readout_product_footprint(product_json):
+def readout_product_footprint(product_json, coords_ref):
     # 'Footprint_geometry' and 'Footprint_C0_geometry' may contain 'GEOMETRYCOLLECTION'
     # when the footprint cross the meridian in "c180" or "c0" frames
     #product_geom = request.json()['ODEResults']['Products']['Product']['Footprint_geometry']
     #product_geom = request.json()['ODEResults']['Products']['Product']['Footprint_C0_geometry']
-    product_geom = product_json[FOOTPRINT_GEOMETRY_FIELD]
+    product_geom = product_json[COORDS_REF[coords_ref]]
     return product_geom
 
 
