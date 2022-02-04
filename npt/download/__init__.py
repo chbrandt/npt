@@ -1,63 +1,69 @@
 import os
-import subprocess
+from copy import deepcopy
+from copy import copy as shallowcopy
 
-from . import log
+from npt import log
 
 from npt.utils.download import download_file
 
+
+def from_geojson(geojson:dict, basepath:str, progressbar:bool=False) -> dict:
+    features = geojson['features']
+    new_features = []
+    for feature in features:
+        new_feature = from_feature(feature, basepath, progressbar=progressbar)
+        assert id(new_feature) != id(feature)
+        new_features.append(new_feature)
+
+    new_geojson = shallowcopy(geojson)
+    assert id(new_geojson) != id(geojson)
+    new_geojson['features'] = new_features
+
+    return new_geojson
+
+
 #TODO: Add argument "data product type" to define what to download.
-def _run_geo_feature(geojson_feature, base_path, progressbar=False):
+def from_feature(feature:dict, basepath:str,
+                 image_url_field:str='image_url',
+                 label_url_field:str='label_url',
+                 image_path_field:str='image_path',
+                 label_path_field:str='label_path',
+                 progressbar:bool=False):
     """
-    Download data products (Image, Label) inside 'base_path'
-
-    Inputs:
-    * product_feature:
-        Feature from GeoJSON from Search/Listing stage
-        Field 'image_url' is expected, field 'image_path' will be added
-        Field 'label_url' is optional, if present will be download also
-    * base_path:
-        Base filesystem path (directory) where product will be downloaded
-    * progressbar (False):
-        If a (tqdm) progress-bar should show download progress
+    Download data products (Image, Label) inside 'basepath'
     """
-    product_feature = geojson_feature
+    from ._pds import split_label_from_image
 
-    assert base_path, "Expected a valid path, got '{}' instead".format(base_path)
+    properties = deepcopy(feature['properties'])
+    geometry = deepcopy(feature['geometry'])
 
-    properties = product_feature['properties']
-    properties = run_props(properties, base_path, progressbar)
-    product_feature['properties'] = properties
+    image_url = properties.pop(image_url_field)
+    image_path = _download(image_url, basepath=basepath, progressbar=progressbar)
 
-    return product_feature
+    properties[image_path_field] = image_path
 
-run = _run_geo_feature
+    label_url = None
+    if label_url_field in properties:
+        label_url = properties.pop(label_url_field)
 
-
-def run_props(properties, base_path, progressbar=False):
-    properties = properties.copy()
-
-    image_url = properties['image_url']
-    image_path = _download(image_url, basepath=base_path, progressbar=progressbar)
-    if image_path:
-        properties['image_path'] = image_path
-
-    if ('label_url' in properties
-        and properties['label_url'] != properties['image_url']):
-        label_url = properties['label_url']
-        label_path = _download(label_url, basepath=base_path, progressbar=progressbar)
-        if label_path:
-            properties['label_path'] = label_path
-
-    if 'label_path' in properties:
-        assert 'label_url' in properties
-        metaDict = createLblDict(properties['label_path'])
+    if (label_url is not None and label_url != image_url):
+        label_path = _download(label_url, basepath=basepath, progressbar=progressbar)
     else:
-        metaDict = createImgDict(properties['image_path'])
+        label_path = split_label_from_image(image_path)
 
-    metaDict.update(map_meta_meeo(properties))
+    properties[label_path_field] = label_path
 
-    properties.update(metaDict)
-    return properties
+    # # Update metadata set basaed on image Label.
+    # # FIXME: these MEEO metadata mappings are a bit chaotic
+    # metaDict = createLblDict(label_path)
+    # metaDict.update(map_meta_meeo(properties))
+    # properties.update(metaDict)
+
+    new_feature = shallowcopy(feature)
+    new_feature['properties'] = properties
+    new_feature['geometry'] = geometry
+
+    return new_feature
 
 
 def _download(url, basepath, progressbar=False):
@@ -69,6 +75,7 @@ def _download(url, basepath, progressbar=False):
     except Exception as err:
         log.error(err)
         return None
+
     return file_path
 
 
@@ -77,22 +84,7 @@ def createLblDict( filename ):
     filename is a 'LBL' (PDS LBL) filename
     """
     text = open(filename, 'r').read()
-    return _parseLbl(text)
-
-
-def createImgDict( filename ):
-    """
-    filename is a 'IMG' (PDS Image) filename
-    """
-    cmd = "awk '{print $0; if($0 ~ /^END/){if($1 !~ /END_/){exit}}}' %s" % filename
-    p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                            universal_newlines=True, shell=True)
-    values_txt, err = p.communicate()
-    return _parseLbl(values_txt)
-
-
-def _parseLbl(values_txt):
-    lines = values_txt.splitlines()
+    lines = text.splitlines()
     img_header = {}
     for line in lines:
         value = line
