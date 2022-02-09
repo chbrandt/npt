@@ -33,6 +33,7 @@ def from_feature(feature:dict, basepath:str,
     Download data products (Image, Label) inside 'basepath'
     """
     from ._pds import split_label_from_image
+    from ._pds import write_feature_json
 
     properties = deepcopy(feature['properties'])
     geometry = deepcopy(feature['geometry'])
@@ -62,6 +63,10 @@ def from_feature(feature:dict, basepath:str,
     new_feature = shallowcopy(feature)
     new_feature['properties'] = properties
     new_feature['geometry'] = geometry
+
+    # Write the image/product respective feature/metadata next to it
+    feature_filename = write_feature_json(new_feature)
+    print("Feature/metadata file '{}' written.".format(feature_filename))
 
     return new_feature
 

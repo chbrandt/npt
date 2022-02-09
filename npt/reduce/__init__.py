@@ -3,7 +3,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from . import log
+from npt import log
 
 from ..utils.filenames import change_extension as _change_file_extension
 from ..utils.filenames import change_dirname as _change_file_dirname
@@ -21,25 +21,49 @@ def proj_planet2earth(filein, fileout):
     return warp(filein, fileout)
 
 
-def _run_geo_feature(geojson_feature, output_path, projection="sinusoidal", tmpdir=None, dataset=None, overwrite=True, keep_tmpdir=False):
+def from_geojson(geojson:dict, dataset:str, basepath:str="./data/reduced/") -> dict:
+    features = geojson['features']
+    new_features = []
+    for feature in features:
+        new_feature = from_feature(feature, dataset, basepath)
+        assert id(new_feature) != id(feature)
+        new_features.append(new_feature)
+
+    new_geojson = shallowcopy(geojson)
+    assert id(new_geojson) != id(geojson)
+    new_geojson['features'] = new_features
+
+    return new_geojson
+
+
+def from_feature(geojson_feature, dataset:str, basepath:str="./data/reduced/",
+                 projection:str="sinusoidal",
+                 tmpdir:str=None, keep_tmpdir:bool=False,
+                 overwrite:bool=True):
     echo("Processing Feature: {!s}".format(geojson_feature))
-    echo("Output go to: {!s}".format(output_path))
+    echo("Output go to: {!s}".format(basepath))
     feature = geojson_feature.copy()
     properties = feature['properties']
-    properties = _run_props(properties, output_path, projection, tmpdir, dataset=dataset, overwrite=overwrite, keep_tmpdir=keep_tmpdir)
+    properties = _run_props(properties, dataset=dataset, basepath=basepath,
+                            projection=projection,
+                            tmpdir=tmpdir, keep_tmpdir=keep_tmpdir,
+                            overwrite=overwrite)
     feature['properties'] = properties
     echo("Post-processed feature: {!s}".format(feature))
     return feature
 
-run = _run_geo_feature
 
-
-def _run_props(properties, output_path, map_projection, tmpdir, dataset=None, overwrite=True, keep_tmpdir=False):
+def _run_props(properties:dict, dataset:str, basepath:str="./data/reduced/",
+                 projection:str="sinusoidal",
+                 tmpdir:str=None, keep_tmpdir:bool=False,
+                 overwrite:bool=True):
+# def _run_props(properties, dataset:str=dataset, output_path, map_projection,
+#                tmpdir, dataset=None, overwrite=True, keep_tmpdir=False):
     properties = properties.copy()
     image_filename = properties['image_path']
-    tif = run_file(image_filename,
-        output_path=output_path,
-        map_projection=map_projection,
+    tif = _run_file(image_filename,
+        basepath=basepath,
+        projection=projection,
         tmpdir=tmpdir,
         dataset=dataset,
         overwrite=overwrite,
@@ -65,8 +89,15 @@ def _run_props(properties, output_path, map_projection, tmpdir, dataset=None, ov
 
 
 #TODO: Add argument to set docker container to run --e.g., isis3-- commands
-def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=None, cog=True, make_dirs=True, dataset=None, overwrite=True, keep_tmpdir=False):
-    filename_out = Path(output_path) / f"{_change_file_extension(filename_init.split('/')[-1], 'tif')}"
+def _run_file(filename:str, dataset:str, basepath:str="./data/reduced/",
+                projection:str="sinusoidal",
+                tmpdir:str=None, keep_tmpdir:bool=False,
+                overwrite:bool=True,
+                cog:bool=True, make_dirs:bool=True):
+# def run_file(filename_init, output_path, map_projection="sinusoidal",
+#             tmpdir=None, cog=True, make_dirs=True,
+#             dataset=None, overwrite=True, keep_tmpdir=False):
+    filename_out = Path(basepath) / f"{_change_file_extension(filename.split('/')[-1], 'tif')}"
     if not overwrite:
         if filename_out.exists():
             log.info(f"File '{filename_out}' already exists. Use overwrite to force rewriting.")
@@ -84,14 +115,14 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
         assert os.path.isdir(tmpdir), """Given tmpdir '{}' does not exist""".format(tmpdir)
         tempfile.tempdir = tmpdir
 
-    if output_path and not os.path.isdir(output_path):
+    if basepath and not os.path.isdir(basepath):
         if make_dirs:
-            os.makedirs(output_path, exist_ok=True)
+            os.makedirs(basepath, exist_ok=True)
         else:
-            print("Path '{}' does not exist.".format(output_path))
+            print("Path '{}' does not exist.".format(basepath))
             return None
 
-    assert os.path.isdir(output_path), """Given output_path '{}' does not exist""".format(output_path)
+    assert os.path.isdir(basepath), """Given output_path '{}' does not exist""".format(basepath)
 
     try:
         tmpdir = tempfile.mkdtemp(prefix='neanias_')
@@ -102,11 +133,11 @@ def run_file(filename_init, output_path, map_projection="sinusoidal", tmpdir=Non
         log.info("Temp dir: '{}'".format(tmpdir))
 
     if 'ctx' in dataset:
-        f_tif = reduce_ctx(filename_init, map_projection, tmpdir)
+        f_tif = reduce_ctx(filename, projection, tmpdir)
     elif 'hirise' in dataset:
-        f_tif = reduce_hirise(filename_init, tmpdir)
+        f_tif = reduce_hirise(filename, tmpdir)
     elif 'hrsc' in dataset:
-        f_tif = reduce_hrsc(filename_init, tmpdir)
+        f_tif = reduce_hrsc(filename, tmpdir)
     else:
         raise NotImplementedError
 

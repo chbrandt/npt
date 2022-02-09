@@ -241,7 +241,9 @@ def request_products(bbox, target=None, host=None, instr=None, ptype=None, conta
         payload.update({'loc':'o'})
 
     #payload.update({'pretty':True})
-    return requests.get(api_endpoint, params=payload)
+    res = requests.get(api_endpoint, params=payload)
+    print(res.request.url)
+    return res
 
 
 # USED by 'parse_products'
@@ -298,13 +300,15 @@ def find_product_file(product_files, product_type, descriptors):
     return pfl[0]
 
 
-# USED by 'download.get_product'
-def request_product(PRODUCTID, api_endpoint):
-    payload = dict(
-        query='product',
-        results='fmp',
-        output='JSON',
-        productid=PRODUCTID
-    )
-    #payload.update({'pretty':True})
-    return requests.get(api_endpoint, params=payload)
+# # USED by 'download.get_product'
+# def request_product(PRODUCTID, api_endpoint):
+#     payload = dict(
+#         query='product',
+#         results='fmp',
+#         output='JSON',
+#         productid=PRODUCTID
+#     )
+#     #payload.update({'pretty':True})
+#     res = requests.get(api_endpoint, params=payload)
+#     print("REQUEST", res.request.url)
+#     return res
