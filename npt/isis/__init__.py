@@ -33,17 +33,20 @@ from any Python `reserved keywords`_ such as ``from``; You *cannot* call:
 .. _GMAP: bla
 .. _sh: bla
 """
-from . import (format,
-               calibration,
-               projection)
-
 # import sh
 # isissh = sh(_long_prefix="")
 
-from ._sh import sh
-isissh = sh    # Deprecated, here only for backwards compatibility
-def set_docker(name):
-    isissh.set_docker(name)
+# from ._sh import sh
+# isissh = sh    # Deprecated, here only for backwards compatibility
+
+from ._sh import Sh as _Sh
+sh = _Sh()
+def set_docker(*args, **kwargs):
+    sh.set_docker(*args, **kwargs)
+
+# from . import (format,
+#                calibration,
+#                projection)
 
 
 __all__ = ['isissh']

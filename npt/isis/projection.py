@@ -1,5 +1,6 @@
 import os
-from ._sh import sh
+from npt import log
+from . import sh
 
 
 def define_projection(list_files, projection='sinusoidal', precision=0, tmpdir=None):

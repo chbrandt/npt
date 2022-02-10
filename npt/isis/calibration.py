@@ -1,4 +1,6 @@
-from ._sh import sh
+from npt import log
+from . import sh
+
 
 def radiometry(filename_in, filename_out):
     ctxcal = sh.wrap('ctxcal')

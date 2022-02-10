@@ -8,6 +8,7 @@ from npt import log
 from ..utils.filenames import change_extension as _change_file_extension
 from ..utils.filenames import change_dirname as _change_file_dirname
 from ..utils.filenames import insert_preext as _add_file_subextension
+from ..utils.geojson import write_feature_json
 
 from npt.isis import format
 
@@ -21,12 +22,27 @@ def proj_planet2earth(filein, fileout):
     return warp(filein, fileout)
 
 
-def from_geojson(geojson:dict, dataset:str, basepath:str="./data/reduced/") -> dict:
+def from_geojson(geojson:dict, dataset:str, basepath:str="./data/reduced/",
+                 projection:str="sinusoidal",
+                 tmpdir:str=None, keep_tmpdir:bool=False,
+                 overwrite:bool=False):
+    """
+    Process all images in geojson features
+    """
+    from copy import copy as shallowcopy
+
     features = geojson['features']
     new_features = []
     for feature in features:
-        new_feature = from_feature(feature, dataset, basepath)
+        new_feature = from_feature(feature, dataset, basepath,
+                                    projection=projection,
+                                    tmpdir=tmpdir,
+                                    keep_tmpdir=keep_tmpdir,
+                                    overwrite=overwrite)
         assert id(new_feature) != id(feature)
+        # Write the image/product respective feature/metadata next to it
+        feature_filename = write_feature_json(new_feature)
+        print("Feature/metadata file '{}' written.".format(feature_filename))
         new_features.append(new_feature)
 
     new_geojson = shallowcopy(geojson)
@@ -39,7 +55,7 @@ def from_geojson(geojson:dict, dataset:str, basepath:str="./data/reduced/") -> d
 def from_feature(geojson_feature, dataset:str, basepath:str="./data/reduced/",
                  projection:str="sinusoidal",
                  tmpdir:str=None, keep_tmpdir:bool=False,
-                 overwrite:bool=True):
+                 overwrite:bool=False):
     echo("Processing Feature: {!s}".format(geojson_feature))
     echo("Output go to: {!s}".format(basepath))
     feature = geojson_feature.copy()
@@ -56,7 +72,7 @@ def from_feature(geojson_feature, dataset:str, basepath:str="./data/reduced/",
 def _run_props(properties:dict, dataset:str, basepath:str="./data/reduced/",
                  projection:str="sinusoidal",
                  tmpdir:str=None, keep_tmpdir:bool=False,
-                 overwrite:bool=True):
+                 overwrite:bool=False):
 # def _run_props(properties, dataset:str=dataset, output_path, map_projection,
 #                tmpdir, dataset=None, overwrite=True, keep_tmpdir=False):
     properties = properties.copy()
@@ -92,7 +108,7 @@ def _run_props(properties:dict, dataset:str, basepath:str="./data/reduced/",
 def _run_file(filename:str, dataset:str, basepath:str="./data/reduced/",
                 projection:str="sinusoidal",
                 tmpdir:str=None, keep_tmpdir:bool=False,
-                overwrite:bool=True,
+                overwrite:bool=False,
                 cog:bool=True, make_dirs:bool=True):
 # def run_file(filename_init, output_path, map_projection="sinusoidal",
 #             tmpdir=None, cog=True, make_dirs=True,

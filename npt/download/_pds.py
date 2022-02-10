@@ -1,4 +1,7 @@
 from npt.utils import filenames
+from npt.utils import geojson
+
+write_feature_json = geojson.write_feature_json
 
 def split_label_from_image(img_filename):
     """
@@ -31,18 +34,3 @@ def read_image_header(img_filename):
 
     header.seek(0)
     return header
-
-
-def write_feature_json(feature:dict, image_path:str='image_path') -> bool:
-    """
-    Write feature/metadata next to feature['image_path']
-    """
-    import json
-    try:
-        json_filename = filenames.change_extension(feature['properties'][image_path], 'json')
-        with open(json_filename, 'w') as fp:
-            json.dump(feature, fp)
-        return json_filename
-    except Exception as err:
-        raise err
-        return None

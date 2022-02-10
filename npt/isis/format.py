@@ -1,5 +1,5 @@
 from npt import log
-from ._sh import sh
+from . import sh
 
 from npt.utils import raster
 
