@@ -54,11 +54,11 @@ def from_feature(feature:dict, basepath:str,
 
     properties[label_path_field] = label_path
 
-    # # Update metadata set basaed on image Label.
-    # # FIXME: these MEEO metadata mappings are a bit chaotic
-    # metaDict = createLblDict(label_path)
-    # metaDict.update(map_meta_meeo(properties))
-    # properties.update(metaDict)
+    # Update metadata set basaed on image Label.
+    # FIXME: these MEEO metadata mappings are a bit chaotic
+    metaDict = createLblDict(label_path)
+    metaDict.update(map_meta_meeo(properties))
+    properties.update(metaDict)
 
     new_feature = shallowcopy(feature)
     new_feature['properties'] = properties
