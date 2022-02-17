@@ -107,6 +107,7 @@ class ODE(object):
         contains = False if 'intersect' in match else True
 
         assert bbox_ref in COORDS_REF.keys()
+        assert bbox['westlon'] < bbox['eastlon'], bbox
         if bbox_ref == 'C0':
             bbox = bbox.copy()
             _wl = bbox['westlon']
@@ -115,7 +116,6 @@ class ODE(object):
             bbox['westlon'] = _wl+360 if _wl < 0 else _wl
             bbox['eastlon'] = _el+360 if _el < 0 else _el
 
-        assert bbox['westlon'] < bbox['eastlon']
 
         req = request_products(bbox,
                                 self.target,
