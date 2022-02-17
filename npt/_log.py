@@ -3,4 +3,4 @@ import logging
 fmt="%(levelname)s:%(module)s.%(funcName)s(): %(message)s"
 logging.basicConfig(level=logging.INFO, format=fmt)
 log = logging.getLogger('npt')
-log.setLevel('DEBUG')
+log.setLevel('INFO')
