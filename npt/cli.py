@@ -6,68 +6,78 @@ from click import argument,option
 
 from npt import log
 
+from npt.search import ode
+
+from npt import datasets
 # from npt.search import bbox as search_bbox
-from npt.pipelines import Search
+# from npt.pipelines import Search
 from npt.utils.formatters import json_2_geojson
 from npt.utils.bbox import string_2_dict as bbox_string_2_dict
 
-from npt.pipelines import Download
-from npt.utils import geojson
+# from npt.pipelines import Download
+# from npt.utils import geojson
 
-from npt.pipelines import Processing
-from npt.pipelines import Mosaic
+# from npt.pipelines import Processing
+# from npt.pipelines import Mosaic
 
 
 
 # === MAIN
 @click.group()
 @option('--debug', is_flag=True, default=False, help="Output DEBUG-level messages")
-def main(debug):
+def main(debug:bool):
     """
     Interface to npt pipelines
     """
     if debug:
         log.setLevel('DEBUG')
+
 # ===
 
 
+@main.command()
+def datasets_list():
+    """List the supported datasets"""
+    for dset in datasets.list():
+        print(dset)
+
 
 @main.command()
-@argument('provider')
 @argument('dataset')
 @argument('bbox')
-@option('--output', default='', help="GeoJSON filename with query results")
+@argument('output_geojson')
 @option('--contains/--intersects', default=False, help="Bounding-box intersects or contains products' footprint")
-# @option('--provider', default='ode', help="Choose interface/provider to query")
-def search(bbox, dataset, output, provider, contains):
+@option('--coordsref', default='C0', help="Central coordinate reference: 'C0' or 'C180'.")
+def search(dataset:str, bbox:str, output_geojson:str, contains:bool, bbox_ref:str='C0'):
     """
     Query 'provider'/'dataset' for data products in/on 'bbox'
 
     \b
     Attributes:
-    - provider: 'ODE'
-        Query ODE for intersecting footprints to bbox.
-    - dataset: <string>
+    - dataset:
         Options are: ['mars/mro/ctx/edr', 'mars/mro/hirise/rdrv11'].
-    - bbox: <string>
-        Format: '[min,max,west,east]' (global positive east [0:360])
-        Eg,
-            "[-0.5,0.5,359.5,0.5]"
-
+    - bbox:
+        Format: '[min,max,west,east]'
+        Eg: if coords-ref=='C180': "[-0.5,0.5,359.5,0.5]"
+        Eg: if coords-ref=='C0'    "[-0.5,0.5,-0.5,0.5]"
+    - output_geojson:
+        Output GeoJSON filename
+    - contains:
+        If True, consider only fully contained footprints inside B-Box;
+        If False, consider footprints intersecting the bounding-box.
     """
+    assert len(output_geojson.strip())>0
+
     bbox = bbox.replace('[','').replace(']','')
     bounding_box = bbox_string_2_dict(bbox)
-    if output:
-        products = Search.run(bounding_box=bounding_box,
-                           dataset_id=dataset,
-                           output_geojson=output,
-                           contains=contains)
-    else:
-        import json
-        products = Search.run(bounding_box=bounding_box,
-                           dataset_id=dataset,
-                           contains=contains)
-        click.echo(json.dumps(products, indent=2))
+
+    match = 'contain' if contains else 'intersect'
+
+    products = ode(bbox=bounding_box, dataset=dataset, match=match, bbox_ref=coordsref)
+
+    products.to_file(output_geojson, driver='GeoJSON', index=False)
+
+    return output_geojson
 
 
 @main.command()
@@ -93,11 +103,15 @@ def download(geojson_file, basepath, output, progress):
 
 
 @main.command()
-@argument('geojson_file')
+@argument('filename')
 @argument('basepath')
 @option('--output', metavar='<.geojson>', default='', help="GeoJSON filename with query results")
 @option('--tmpdir', default=None, help="Temp dir to use during processing")
-def process(geojson_file, basepath, output, tmpdir):
+# def reduce(geojson, basepath, output, tmpdir):
+def from_geojson(filename:str, dataset:str, basepath:str="./data/reduced/",
+                 projection:str="sinusoidal",
+                 tmpdir:str=None, keep_tmpdir:bool=False,
+                 overwrite:bool=False):
     """
     WIP
     """
