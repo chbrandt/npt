@@ -7,15 +7,14 @@ from click import argument,option
 from npt import log
 
 from npt.search import ode
+from npt.download import from_geojson as download_geojson
 
 from npt import datasets
-# from npt.search import bbox as search_bbox
-# from npt.pipelines import Search
 from npt.utils.formatters import json_2_geojson
 from npt.utils.bbox import string_2_dict as bbox_string_2_dict
 
 # from npt.pipelines import Download
-# from npt.utils import geojson
+from npt.utils import geojson
 
 # from npt.pipelines import Processing
 # from npt.pipelines import Mosaic
@@ -47,24 +46,19 @@ def datasets_list():
 @argument('bbox')
 @argument('output_geojson')
 @option('--contains/--intersects', default=False, help="Bounding-box intersects or contains products' footprint")
-@option('--coordsref', default='C0', help="Central coordinate reference: 'C0' or 'C180'.")
+@option('--coordsref', default='C0', help="Central coordinate reference: 'C0'(default) or 'C180'.")
 def search(dataset:str, bbox:str, output_geojson:str, contains:bool, coordsref:str):
     """
     Query 'provider'/'dataset' for data products in/on 'bbox'
 
     \b
     Attributes:
-    - dataset:
-        Options are: ['mars/mro/ctx/edr', 'mars/mro/hirise/rdrv11'].
-    - bbox:
-        Format: '[min,max,west,east]'
-        Eg: if coords-ref=='C180': "[-0.5,0.5,359.5,0.5]"
-        Eg: if coords-ref=='C0'    "[-0.5,0.5,-0.5,0.5]"
-    - output_geojson:
-        Output GeoJSON filename
-    - contains:
-        If True, consider only fully contained footprints inside B-Box;
-        If False, consider footprints intersecting the bounding-box.
+        dataset: See `npt datasets-list` for options
+        bbox: bounding-box definition, '[minlat,maxlat,westlon,eastlon]'
+            Eg: if coords-ref=='C180': "[-0.5,0.5,359.5,0.5]"
+            Eg: if coords-ref=='C0'    "[-0.5,0.5,-0.5,0.5]"
+        output_geojson: output GeoJSON filename
+        contains: if True, consider only footprints inside 'bbox' (False: all intersecting)
     """
     assert len(output_geojson.strip())>0
 
@@ -82,26 +76,25 @@ def search(dataset:str, bbox:str, output_geojson:str, contains:bool, coordsref:s
 
 
 @main.command()
-@argument('geojson_file')
-@argument('basepath')
-@option('--output', metavar='<.geojson>', default='', help="GeoJSON filename with query results")
+@argument('input_geojson')
+@argument('dest_path')
+@argument('output_geojson')
 @option('--progress/--silent', default=True, help="Print download progress")
-def download(geojson_file, basepath, output, progress):
+def download(input_geojson:str, dest_path:str, output_geojson:str, progress:bool):
     """
     Download features' image_url/label_url data products
     """
-    features = geojson.read(geojson_file)
-    products = []
-    for feature in features:
-        mod_feature = Download.run(feature, base_path=basepath, progressbar=progress)
-        products.append(mod_feature)
-    log.debug(products)
-    if output:
-        json_2_geojson(products, filename=output)
-    else:
-        import json
-        click.echo(json.dumps(products, indent=2))
+    assert len(output_geojson.strip())>0
 
+    input_gjson = geojson.read(input_geojson)
+    log.debug(input_gjson)
+
+    result_gjson = download_geojson(input_gjson, basepath=dest_path, progressbar=progress)
+    log.debug(result_gjson)
+
+    geojson.write(result_gjson, output_geojson)
+
+    return output_geojson
 
 @main.command()
 @argument('filename')

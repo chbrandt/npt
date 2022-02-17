@@ -11,8 +11,18 @@ def read(filename):
     """
     with open(filename, 'r') as fp:
         js = json.load(fp)
-        features = js['features']
-    return features
+    #     features = js['features']
+    # return features
+    return js
+
+
+def write(gjson_object, geojson_filename):
+    """
+    Write GeoJSON object to file
+    """
+    with open(geojson_filename, 'w') as fp:
+        json.dump(gjson_object, fp)
+    return geojson_filename
 
 
 def write_feature_json(feature:dict, reference_path_field:str='image_path') -> bool:
