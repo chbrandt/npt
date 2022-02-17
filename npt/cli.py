@@ -48,7 +48,7 @@ def datasets_list():
 @argument('output_geojson')
 @option('--contains/--intersects', default=False, help="Bounding-box intersects or contains products' footprint")
 @option('--coordsref', default='C0', help="Central coordinate reference: 'C0' or 'C180'.")
-def search(dataset:str, bbox:str, output_geojson:str, contains:bool, bbox_ref:str='C0'):
+def search(dataset:str, bbox:str, output_geojson:str, contains:bool, coordsref:str):
     """
     Query 'provider'/'dataset' for data products in/on 'bbox'
 
@@ -70,6 +70,7 @@ def search(dataset:str, bbox:str, output_geojson:str, contains:bool, bbox_ref:st
 
     bbox = bbox.replace('[','').replace(']','')
     bounding_box = bbox_string_2_dict(bbox)
+    log.debug(bounding_box)
 
     match = 'contain' if contains else 'intersect'
 
