@@ -8,16 +8,13 @@ from npt import log
 
 from npt.search import ode
 from npt.download import from_geojson as download_geojson
+from npt.reduce import from_geojson as reduce_geojson
 
 from npt import datasets
 from npt.utils.formatters import json_2_geojson
 from npt.utils.bbox import string_2_dict as bbox_string_2_dict
 
-# from npt.pipelines import Download
 from npt.utils import geojson
-
-# from npt.pipelines import Processing
-# from npt.pipelines import Mosaic
 
 
 
@@ -45,7 +42,7 @@ def datasets_list():
 @argument('dataset')
 @argument('bbox')
 @argument('output_geojson')
-@option('--contains/--intersects', default=False, help="Bounding-box intersects or contains products' footprint")
+@option('--contains/--intersects', is_flag=True, default=False, help="Bounding-box intersects or contains products' footprint")
 @option('--coordsref', default='C0', help="Central coordinate reference: 'C0'(default) or 'C180'.")
 def search(dataset:str, bbox:str, output_geojson:str, contains:bool, coordsref:str):
     """
@@ -79,7 +76,7 @@ def search(dataset:str, bbox:str, output_geojson:str, contains:bool, coordsref:s
 @argument('input_geojson')
 @argument('dest_path')
 @argument('output_geojson')
-@option('--progress/--silent', default=True, help="Print download progress")
+@option('--progress/--silent', is_flag=True, default=True, help="Print download progress")
 def download(input_geojson:str, dest_path:str, output_geojson:str, progress:bool):
     """
     Download features' image_url/label_url data products
@@ -96,33 +93,42 @@ def download(input_geojson:str, dest_path:str, output_geojson:str, progress:bool
 
     return output_geojson
 
+
 @main.command()
-@argument('filename')
-@argument('basepath')
-@option('--output', metavar='<.geojson>', default='', help="GeoJSON filename with query results")
-@option('--tmpdir', default=None, help="Temp dir to use during processing")
-# def reduce(geojson, basepath, output, tmpdir):
-def from_geojson(filename:str, dataset:str, basepath:str="./data/reduced/",
-                 projection:str="sinusoidal",
-                 tmpdir:str=None, keep_tmpdir:bool=False,
-                 overwrite:bool=False):
+@argument('input_geojson')
+@argument('dataset')
+@argument('dest_path')
+@argument('output_geojson')
+@option('--projection', default='sinusoidal', help="Projection to lay images.")
+@option('--tmpdir', default='', help="Temp-dir to use. Empty/none means a random one will be used.")
+@option('--keep-tmpdir', is_flag=True, default=False, help="Keep temp-dir (don't delete it) if things fail.")
+@option('--overwrite', is_flag=True, default=False, help="Force overwriting of products.")
+@option('--docker-isis', default='', help="Container name to use for processing.")
+def reduce(input_geojson:str, dataset:str, dest_path:str, output_geojson:str,
+                 projection:str,
+                 tmpdir:str, keep_tmpdir:bool,
+                 overwrite:bool,
+                 docker_isis:str):
     """
-    WIP
+    Reduce image data to analysis/publication-ready (GeoTiff)
     """
-    features = geojson.read(geojson_file)
+    assert len(output_geojson.strip())>0
+
+    input_gjson = geojson.read(input_geojson)
+    log.debug(input_gjson)
+
     if docker_isis:
         from npt import isis
         isis.set_docker(docker_isis)
-    products = []
-    for feature in features:
-        mod_feature = Processing.run(feature, output_path=basepath, tmpdir=tmpdir)
-        products.append(mod_feature)
-    log.debug(products)
-    if output:
-        json_2_geojson(products, filename=output)
-    else:
-        import json
-        click.echo(json.dumps(products, indent=2))
+
+    result_gjson = reduce_geojson(input_gjson, dataset=dataset,
+                                  basepath=dest_path, tmpdir=tmpdir)
+    log.debug(result_gjson)
+
+    geojson.write(result_gjson, output_geojson)
+
+    return output_geojson
+
 
 
 @main.command()
