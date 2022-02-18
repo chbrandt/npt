@@ -19,6 +19,9 @@ def ode(dataset: str, bbox: dict, match: str = 'intersect', bbox_ref:str='C0'):
     """
     from npt.search._ode import ODE
 
-    prods = ODE(dataset).query(bbox=bbox, match=match, bbox_ref=bbox_ref).parse().to_dataframe()
+    prods = ODE(dataset).query(bbox=bbox, match=match, bbox_ref=bbox_ref).parse()
 
-    return prods
+    if not prods:
+        return None
+
+    return prods.to_dataframe()

@@ -86,7 +86,7 @@ class ODE(object):
         dataset string example: 'mars/mro/ctx/edr'
         """
         target, mission, instrument, product_type = dataset.split('/')
-        assert dataset in datasets.list()
+        assert dataset in datasets.list(), f"Dataset '{dataset}' not recognised."
         self.dataset = dataset
         self.target = target
         self.mission = mission
@@ -144,8 +144,10 @@ class ODE(object):
         return cnt
 
     def parse(self):
-        if not self._result:
+        if not self._result or not self._count():
             return None
+        log.debug("Search results:", self._result)
+
         if self._count() > 1:
             products = self._result['ODEResults']['Products']['Product']
         else:
@@ -242,7 +244,6 @@ def request_products(bbox, target=None, host=None, instr=None, ptype=None, conta
 
     #payload.update({'pretty':True})
     res = requests.get(api_endpoint, params=payload)
-    print(res.request.url)
     return res
 
 

@@ -1,21 +1,20 @@
 """
 Define commands and sub-commands line interface
 """
+import sys
+
 import click
 from click import argument,option
 
 from npt import log
-
+from npt import datasets
 from npt.search import ode
 from npt.download import from_geojson as download_geojson
 from npt.reduce import from_geojson as reduce_geojson
 
-from npt import datasets
-from npt.utils.formatters import json_2_geojson
-from npt.utils.bbox import string_2_dict as bbox_string_2_dict
-
 from npt.utils import geojson
-
+from npt.utils.bbox import string_2_dict as bbox_string_2_dict
+from npt.utils.formatters import json_2_geojson
 
 
 # === MAIN
@@ -27,7 +26,6 @@ def main(debug:bool):
     """
     if debug:
         log.setLevel('DEBUG')
-
 # ===
 
 
@@ -67,9 +65,12 @@ def search(dataset:str, bbox:str, output_geojson:str, contains:bool, coordsref:s
 
     products = ode(bbox=bounding_box, dataset=dataset, match=match, bbox_ref=coordsref)
 
-    products.to_file(output_geojson, driver='GeoJSON', index=False)
-
-    return output_geojson
+    if products is None:
+        print("No products found.", file=sys.stderr)
+        return None
+    else:
+        products.to_file(output_geojson, driver='GeoJSON', index=False)
+        return output_geojson
 
 
 @main.command()
