@@ -1,0 +1,6 @@
+{
+"type": "FeatureCollection",
+"features": [
+{ "type": "Feature", "properties": { "id": "P16_007361_1800_XN_00S000W", "mission": "MRO", "inst": "CTX", "type": "EDR", "Target_name": "MARS", "Footprints_cross_meridian": "True", "Map_scale": "5.34", "Center_latitude": "0.0198", "Center_longitude": "0", "Easternmost_longitude": "359.82", "Westernmost_longitude": "0.18", "Minimum_latitude": "-0.3657", "Maximum_latitude": "0.4052", "Emission_angle": "0.2", "Incidence_angle": "44.11", "Phase_angle": "43.91", "Solar_longitude": "34.81", "Observation_time": "2008-02-21T00:58:55.697", "Product_creation_time": "2008-07-17T04:09:49.000", "UTC_start_time": "2008-02-21T00:58:48.971", "UTC_stop_time": "2008-02-21T00:59:02.424", "image_url": "https://pds-imaging.jpl.nasa.gov/data/mro/mars_reconnaissance_orbiter/ctx/mrox_0433/data/P16_007361_1800_XN_00S000W.IMG", "label_url": null, "browse_url": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 0.18, 0.4052 ], [ 0.27, -0.3064 ], [ -0.18, -0.3657 ], [ -0.26, 0.3558 ], [ 0.18, 0.4052 ] ] ] } }
+]
+}
