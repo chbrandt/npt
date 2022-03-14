@@ -1,23 +1,13 @@
 # NEANIAS Planets Tools
 
-### Search
+## Install
 
-```python
->>> import npt
->>> npt.search.about()
-# print(npt.search.__doc__)
->>> npt.search.bbox('<bbox>', dataset='<dataset>', output='<geojson>')
-# "Dataset" defines query interface (endpoint), products to filter
-# Internally, 'search' define the mapping schema for output (gjson) from provider (json/xml)
-```
+### Developers
 
-### Data sets
+```bash
+$ git clone https://github.com/chbrandt/npt.git
+$ cd npt
+$ pip install -e .
 ```
->>> npt.datasets.list
-mars / mro / ctx / edr
-mars /
-```
-
-Geo-Planetary Processing Tools.
 
 /.\
