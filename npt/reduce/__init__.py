@@ -97,7 +97,7 @@ def _run_props(properties:dict, dataset:str, basepath:str="./data/reduced/",
             tif = tmp
         except:
             assert isinstance(tif, str)
-        properties['image_path'] = tif
+        # properties['image_path'] = tif
         properties['tiff_path'] = tif
         return properties
     log.error("Processing output is null. See the temp files.")
