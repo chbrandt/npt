@@ -1,3 +1,6 @@
+"""
+Module to interface MEEO pipelines manager
+"""
 from npt import log
 
 def search(dataset, bbox, match='intersect', bbox_ref='C0', output_geojson=None):
