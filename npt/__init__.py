@@ -5,3 +5,4 @@ from . import datasets
 from . import search
 from . import download
 # from . import reduce
+from . import pipelines
