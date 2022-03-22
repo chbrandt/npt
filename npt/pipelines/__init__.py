@@ -32,3 +32,55 @@ def search(dataset, bbox, match='intersect', bbox_ref='C0', output_geojson=None)
         return output_geojson
     else:
         return gdf
+
+
+def download(feature, basepath, progressbar=False):
+    """
+    Download data products and return updated feature (with 'image_path'/'label_path' added)
+
+    Input:
+    * feature:
+        GeoJSON feature (from ODE search)
+        Property 'image_url' is expected, field 'image_path' will be added
+        Property 'label_url' is optional, field 'label_path' will be added
+    * basepath:
+        Base filesystem path (directory) where product will be downloaded
+    * progressbar (False):
+        If a (tqdm) progress-bar should show download progress
+    """
+    from npt.download import from_feature
+
+    new_feature = from_feature(feature, basepath, progressbar=progressbar)
+
+    return new_feature
+
+
+def reduce(feature, basepath, tmpdir=None, keep_tmpdir=True, overwrite=False):
+    """
+    Reduce image to "science-ready" level, return updated feature
+
+    Note: property 'tiff_path' is added to (new) feature
+
+    Input:
+    * feature:
+        GeoJSON feature, with 'image_path' property
+    * basepath:
+        Base filesystem path (directory) where product will be downloaded
+    * tmpdir:
+        Temp directory where to do the processing/intermediate steps
+    * keep_tmpdir:
+        When and error occurs, to keep (True) or not to keep (False) temp data
+    * overwrite:
+        If False and output (file) already exists, skip processing
+    """
+    from npt.download import from_feature
+
+    projection="sinusoidal"
+
+    props = feature['properties']
+    dataset = '/'.join(['mars', props['mission'], props['inst'], props['type']]).lower()
+
+    new_feature = from_feature(feature, dataset, basepath=basepath, projection=projection,
+                                tmpdir=tmpdir, keep_tmpdir=keep_tmpdir, overwrite=overwrite)
+
+    return new_feature
