@@ -73,7 +73,7 @@ def reduce(feature, basepath, tmpdir=None, keep_tmpdir=True, overwrite=False):
     * overwrite:
         If False and output (file) already exists, skip processing
     """
-    from npt.download import from_feature
+    from npt.reduce import from_feature
 
     projection="sinusoidal"
 
