@@ -1,5 +1,3 @@
-from sh import docker, awk, tail
-
 from npt import log
 
 
@@ -23,6 +21,7 @@ def containers():
     """
     Return list of container (names) instanciated
     """
+    from sh import docker, awk, tail
     from io import StringIO
 
     buf = StringIO()
@@ -41,6 +40,7 @@ def restart(name):
     """
     Re/Start a container
     """
+    from sh import docker
     if name in containers():
         docker('start',name)
         return True
