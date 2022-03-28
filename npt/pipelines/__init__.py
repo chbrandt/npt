@@ -27,6 +27,10 @@ def search(dataset, bbox, match='intersect', bbox_ref='C0', output_geojson=None)
 
     gdf = ode(dataset=dataset, bbox=bbox, match=match, bbox_ref=bbox_ref)
 
+    if gdf is None:
+        log.info('Search returned no results.')
+        return None
+
     if output_geojson:
         gdf.to_file(output_geojson, driver='GeoJSON', index=False)
         return output_geojson
