@@ -88,3 +88,22 @@ def reduce(feature, basepath, tmpdir=None, keep_tmpdir=True, overwrite=False):
                                 tmpdir=tmpdir, keep_tmpdir=keep_tmpdir, overwrite=overwrite)
 
     return new_feature
+
+
+def mosaic(geojson, basepath:str, bbox=None, output_geojson=None):
+    """
+    Create Mosaic from images in 'geojson' input, return geojson with one mosaic/feature
+    """
+    from npt.mosaic import mosaic
+
+    gdf = mosaic(geojson, basepath=basepath, bbox=bbox)
+
+    if gdf is None:
+        log.info('Mosaic failed to create.')
+        return None
+
+    if output_geojson:
+        gdf.to_file(output_geojson, driver='GeoJSON', index=False)
+        return output_geojson
+    else:
+        return gdf
