@@ -8,6 +8,7 @@ def run(geojson_file, basepath, output, tmpdir):
     Make mosaic from files in 'input_geojson' file. Write GeoJSON with mosaic feature.
     """
     import geopandas
+    from datetime import datetime
 
     gdf = geopandas.read_file(geojson_file)
     log.info("{:d} features read".format(len(gdf)))
@@ -32,7 +33,14 @@ def run(geojson_file, basepath, output, tmpdir):
 
     ngdf = geopandas.GeoDataFrame(properties, geometry=geometry)
     _rec = ngdf.iloc[0]
-    mosaic_filename = f"mosaic_{_rec['inst'].lower()}_lon{c_lon}_lat{c_lat}.tif"
+
+    dtime = datetime.now().strftime("%Y%m%dT%H%M%S%f")
+    mosaic_filename = (
+      "mosaic_"
+      f"{_rec['inst'].lower()}_"
+      f"{dtime}"_
+      f"lon{c_lon}_lat{c_lat}.tif"
+    )
 
     mosaic_path = mosaic(filenames, output_path=basepath,
                                 mosaic_filename=mosaic_filename)
