@@ -1,23 +1,11 @@
 import requests
-
 from npt import log
-# from npt import query
 from npt import datasets
 
+
+DB_ID = 'usgs_ode'
+
 API_URL = 'https://oderest.rsl.wustl.edu/live2'
-
-_DESCRIPTORS_TEMPLATE = {
-    'product_image': ('Description', 'PRODUCT DATA FILE'),
-    'product_label': ('Description', 'PRODUCT LABEL FILE'),
-    'browse_image': ('Description', 'BROWSE IMAGE'),
-    'browse_thumbnail': ('Description', 'THUMBNAIL IMAGE')
-}
-
-# FILTERS = {
-#     'ctx': ("^(CRU|MOI|T01)_", False),
-#     'hirise': ("^(PSP|ESP)_.*(RED)", True),
-#     'hrsc': (".*_ND3.*", True)
-# }
 
 COORDS_REF = {
     'C0': 'Footprint_C0_geometry',  # -180:+180
@@ -27,6 +15,7 @@ COORDS_REF = {
 METADATA = [
     'Target_name',
     'Footprints_cross_meridian',
+#    'Map_resolution'
     'Map_scale',
     'Center_latitude',
     'Center_longitude',
@@ -44,10 +33,6 @@ METADATA = [
     'UTC_stop_time'
 ]
 
-DB_ID = 'usgs_ode'
-
-
-from collections import UserList
 
 class ODEProducts(list):
     def __init__(self):
@@ -67,7 +52,6 @@ class ODEProducts(list):
                     or type(_geom) == shapely.geometry.MultiPolygon):
                     _geom = _geom.envelope
                 assert type(_geom) == shapely.geometry.Polygon
-            # except TypeError as err:
             except Exception as err:
                 print("Error in: ", product)
                 _geom = None
@@ -80,7 +64,13 @@ class ODEProducts(list):
 
 
 class ODE(object):
-    _result = None
+    """
+    Handles querying ODE, and then parsing the results for a given dataset
+
+    Check 'npt.datasets.list' for the available/supported datasets
+    """
+    _result = None # Cache ODE query results
+
     def __init__(self, dataset):
         """
         dataset string example: 'mars/mro/ctx/edr'
@@ -123,10 +113,13 @@ class ODE(object):
                                 self.instr,
                                 self.ptype,
                                 contains=contains)
+
         result = req.json()
+        log.debug(f"ODE results: {result}")
+
         if result['ODEResults']['Status'].lower() != 'success':
             errmsg = result['ODEResults']['Error']
-            print('Request failed:', str(errmsg))
+            log.info('Request failed:', str(errmsg))
         else:
             self._result = result
             self._ref_coords = bbox_ref
@@ -134,6 +127,9 @@ class ODE(object):
         return self
 
     def _count(self):
+        """
+        Number of products found
+        """
         if self._result is None:
             return None
         try:
@@ -144,6 +140,9 @@ class ODE(object):
         return cnt
 
     def parse(self):
+        """
+        Parse ODE results into a table/dataframe with columns from METADATA
+        """
         if not self._result or not self._count():
             return None
         log.debug("Search results:", self._result)
@@ -159,48 +158,54 @@ class ODE(object):
 
         products_output = ODEProducts()
         for i,product in enumerate(products):
-            _meta = readout_product_meta(product)
-            _files = readout_product_files(product)
+            _meta = readout_product_meta(product, metadata=METADATA)
             _fprint = readout_product_footprint(product, self._ref_coords)
-            _pfile = find_product_file(product_files=_files,
+
+            files_obj = readout_product_files(product)
+
+            _pobj = find_product_file(product_files=files_obj,
                                        product_type='product_image',
-                                       # descriptors=DESCRIPTORS[self.instr])
                                        descriptors=datasets.descriptors(self.dataset))
-            _pfile = _pfile['URL']
+            _pfile = _pobj['URL']
+            _psize = _pobj['KBytes']
+
             try:
-                _lfile = find_product_file(product_files=_files,
+                _lobj = find_product_file(product_files=files_obj,
                                            product_type='product_label',
-                                           # descriptors=DESCRIPTORS[self.instr])
                                            descriptors=datasets.descriptors(self.dataset))
-                _lfile = _lfile['URL']
+                _lfile = _lobj['URL']
             except KeyError as err:
                 _lfile = None
 
             try:
-                _bfile = find_product_file(product_files=_files,
+                _bobj = find_product_file(product_files=files_obj,
                                            product_type='browse_image',
                                            # descriptors=DESCRIPTORS[self.instr])
                                            descriptors=datasets.descriptors(self.dataset))
-                _bfile = _bfile['URL']
+                _bfile = _bobj['URL']
             except KeyError as err:
                 _bfile = None
 
             _dout = _meta
             _dout['geometry'] = _fprint
             _dout['image_url'] = _pfile
+            _dout['image_kbytes'] = _psize
             _dout['label_url'] = _lfile
             _dout['browse_url'] = _bfile
 
-            # Apply filters to product-ID
+            # Apply filters to product-ID (see npt.dataset._datasets)
             filters = datasets.filters(self.dataset)
             if (not filters) or select_product(_dout, filters['product-id']):
                 products_output.append(_dout)
 
-        print("{} products found".format(len(products_output)))
+        log.info("{} products found".format(len(products_output)))
         return products_output
 
 
 def select_product(meta, filter_rule):
+    """
+    The filter rules are (<regex>,<bool>), return (bool) if regex is/not in 'meta'
+    """
     import re
     expression, present = filter_rule
     regex = re.compile(expression, re.IGNORECASE)
@@ -208,16 +213,24 @@ def select_product(meta, filter_rule):
     _match = regex.match(product_id)
     return bool(_match) is present
 
+
 # USED by 'query_bbox'
-def request_products(bbox, target=None, host=None, instr=None, ptype=None, contains=False):
+def request_products(bbox:dict,
+                     target:str=None, host:str=None,
+                     instr:str=None, ptype:str=None,
+                     contains:bool=False):
     """
+    Assemble query-URL and (GET) request ODE server.
+
+    ODE gets longitudes in the range [0:360]. Target, host, instr, ptype are as
+    in 'npt.datasets.list'.
+
     bbox = {
-        'minlat': [-65:65],
-        'minlat': [-65:65],
-        'westlon': [0:360],
-        'eastlon': [0:360]
+        'minlat': <-65:65>,
+        'maxlat': <-65:65>,
+        'westlon': <0:360>,
+        'eastlon': <0:360>
     }
-    'ptype' (eg, "rdrv11") is used only when 'instr' is also defined (e.g, "hirise").
     """
     api_endpoint = API_URL
 
@@ -264,7 +277,13 @@ def readout_product_footprint(product_json, coords_ref):
 
 
 # USED by 'parse_products'
-def readout_product_meta(product_json):
+def readout_product_meta(product_json:dict, metadata=METADATA) -> dict:
+    """
+    Return "{k:v}" filtered by 'metadata', plus 'id, mission, inst, type' fields
+
+    Example:
+        product_json = {}
+    """
     product = {}
     # <pdsid>ESP_011712_1820_COLOR</pdsid>
     product['id'] = product_json['pdsid']
@@ -276,7 +295,7 @@ def readout_product_meta(product_json):
     product['type'] = product_json['pt']
 
     try:
-        for key in METADATA:
+        for key in metadata:
             product[key] = product_json.get(key, None)
     except Exception as err:
         print(product_json)
@@ -286,30 +305,20 @@ def readout_product_meta(product_json):
 
 
 # USED by 'parse_products'
-def find_product_file(product_files, product_type, descriptors):
+def find_product_file(product_files:list, product_type:str, descriptors:dict) -> dict:
+    """
+    Return product from 'product_files' matching the "key,value" defined in 'descriptors[product_type]'
+    (See npt.datasets._datasets)
+    """
     desc_key, desc_val = descriptors[product_type]
     is_val_regex = desc_val.strip()[-1]=='*'
     desc_val_token = desc_val[:-1].strip()
     _foo = (lambda pf:
             pf[desc_key] == desc_val
             if not is_val_regex
-            else
-            desc_val_token in pf[desc_key])
+            else desc_val_token in pf[desc_key]
+            )
     pfl = list(filter(_foo, product_files))
     multiple_matches = "I was expecting one Product matching ptype '{}' but got '{}' in {}"
     assert len(pfl) == 1, multiple_matches.format(product_type, len(pfl), product_files)
     return pfl[0]
-
-
-# # USED by 'download.get_product'
-# def request_product(PRODUCTID, api_endpoint):
-#     payload = dict(
-#         query='product',
-#         results='fmp',
-#         output='JSON',
-#         productid=PRODUCTID
-#     )
-#     #payload.update({'pretty':True})
-#     res = requests.get(api_endpoint, params=payload)
-#     print("REQUEST", res.request.url)
-#     return res
