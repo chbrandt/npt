@@ -73,8 +73,6 @@ def _run_props(properties:dict, dataset:str, basepath:str="./data/reduced/",
                  projection:str="sinusoidal",
                  tmpdir:str=None, keep_tmpdir:bool=False,
                  overwrite:bool=False):
-# def _run_props(properties, dataset:str=dataset, output_path, map_projection,
-#                tmpdir, dataset=None, overwrite=True, keep_tmpdir=False):
     properties = properties.copy()
     image_filename = properties['image_path']
     tif = _run_file(image_filename,
@@ -100,8 +98,9 @@ def _run_props(properties:dict, dataset:str, basepath:str="./data/reduced/",
         # properties['image_path'] = tif
         properties['tiff_path'] = tif
         return properties
-    log.error("Processing output is null. See the temp files.")
-    return None
+    else:
+        log.error("Processing output is null. See the temp files.")
+        return None
 
 
 #TODO: Add argument to set docker container to run --e.g., isis3-- commands
