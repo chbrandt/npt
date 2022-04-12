@@ -90,13 +90,13 @@ def reduce(feature, basepath, tmpdir=None, keep_tmpdir=True, overwrite=False):
     return new_feature
 
 
-def mosaic(geojson, basepath:str, bbox=None, output_geojson=None):
+def mosaic(geojson, basepath:str, output_geojson=None, method='warp'):
     """
     Create Mosaic from images in 'geojson' input, return geojson with one mosaic/feature
     """
     from npt.mosaic import mosaic
 
-    gdf = mosaic(geojson, basepath=basepath, bbox=bbox)
+    gdf = mosaic(geojson, basepath=basepath, method=method)
 
     if gdf is None:
         log.info('Mosaic failed to create.')
