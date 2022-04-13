@@ -65,7 +65,7 @@ def mosaic(geojson:dict, basepath:str, prefix_output:str="mosaic",
 
     mosaic_path = _mosaic(filenames, basepath=basepath,
                           mosaic_filename=mosaic_filename,
-                          method=method)
+                          method=method, scale_factor=scale_factor)
 
     assert mosaic_path
 
@@ -87,7 +87,8 @@ def _mosaic(filenames, basepath, mosaic_filename=None, make_dirs=True,
     if scale_factor < 1:
         filenames_rescaled = []
         for filename in filenames:
-            filename_resc = insert_preext(change_dirname(filename, basepath), 'rescaled')
+            _f = str(scale_factor).replace('.','')
+            filename_resc = insert_preext(change_dirname(filename, basepath), f'rescaled{_f}')
             log.debug(f"Rescaled filename to-write: {filename_resc}")
             try:
                 filename_resc = raster.rescale(filename, filename_resc, scale_factor)
