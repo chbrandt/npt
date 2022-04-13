@@ -7,7 +7,7 @@ from ..utils.filenames import change_extension, change_dirname, insert_preext
 
 
 def mosaic(geojson:dict, basepath:str, prefix_output:str="mosaic",
-    method:str='merge', scale_factor:float=0.1):
+    method:str='all', scale_factor:float=0.1):
     """
     Make mosaic from files in 'input_geojson' file. Write GeoJSON with mosaic feature.
 
@@ -76,11 +76,12 @@ def mosaic(geojson:dict, basepath:str, prefix_output:str="mosaic",
 
 
 def _mosaic(filenames, basepath, mosaic_filename=None, make_dirs=True,
-            method='merge', scale_factor=0.1):
+            method='all', scale_factor=0.1):
     """
     * method options: virtual, warp, merge
     """
-    from npt.utils.raster import warp, merge, virtual
+    # from npt.utils.raster import warp, merge, virtual
+    from npt.utils.raster import merge
 
     # Rescale?
     assert 0 < scale_factor <= 1, "Scale-factor should be between (0:1]"
@@ -115,11 +116,6 @@ def _mosaic(filenames, basepath, mosaic_filename=None, make_dirs=True,
     output = Path(basepath) / mosaic_filename
     output = output.as_posix()
 
-    if method == 'virtual':
-        output = virtual(filenames, output)
-    elif method == 'warp':
-        output = warp(filenames, output)
-    else:
-        output = merge(filenames, output)
+    output = merge(filenames, output, method=method)
 
     return output

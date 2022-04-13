@@ -90,7 +90,7 @@ def reduce(feature, basepath, tmpdir=None, keep_tmpdir=True, overwrite=False):
     return new_feature
 
 
-def mosaic(geojson, basepath:str, output_geojson=None, method='warp', scale_factor=0.1):
+def mosaic(geojson, basepath:str, output_geojson=None, method='all', scale_factor=0.1):
     """
     Create Mosaic from images in 'geojson' input, return geojson with one mosaic/feature
     """
