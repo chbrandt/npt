@@ -7,11 +7,49 @@ from npt import log
 from npt.utils.download import download_file
 
 
-def from_geojson(geojson:dict, basepath:str, progressbar:bool=False) -> dict:
+def from_geodataframe(gdf, basepath:str,
+                 image_url_field:str='image_url',
+                 label_url_field:str='label_url',
+                 image_path_field:str='image_path',
+                 label_path_field:str='label_path',
+                 progressbar:bool=False):
+    """
+    Download all entries from GeoDataFrame indicated by URLs in the resp. paths
+    """
+    import json
+    gjson_obj = json.loads(gdf.to_json())
+
+    new_gjson = from_geojson(gjson_obj, basepath,
+                            image_url_field,
+                            label_url_field,
+                            image_path_field,
+                            label_path_field,
+                            progressbar)
+
+    if not new_gjson:
+        return None
+
+    new_gdf = gdf.__class__.from_features(new_gjson['features'])
+    return new_gdf
+
+def from_geojson(geojson:dict, basepath:str,
+                 image_url_field:str='image_url',
+                 label_url_field:str='label_url',
+                 image_path_field:str='image_path',
+                 label_path_field:str='label_path',
+                 progressbar:bool=False) -> dict:
+    """
+    Download all entries (features) in GeoJSON, URLs in the resp. paths given
+    """
     features = geojson['features']
     new_features = []
     for feature in features:
-        new_feature = from_feature(feature, basepath, progressbar=progressbar)
+        new_feature = from_feature(feature, basepath,
+                                    image_url_field,
+                                    label_url_field,
+                                    image_path_field,
+                                    label_path_field,
+                                    progressbar)
         assert id(new_feature) != id(feature)
         new_features.append(new_feature)
 
@@ -39,10 +77,7 @@ def from_feature(feature:dict, basepath:str,
     geometry = deepcopy(feature['geometry'])
 
     image_url = properties.pop(image_url_field)
-    image_path = _download(image_url, basepath=basepath, progressbar=progressbar)
-
-    properties[image_path_field] = image_path
-
+    
     label_url = None
     if label_url_field in properties:
         label_url = properties.pop(label_url_field)
@@ -54,10 +89,13 @@ def from_feature(feature:dict, basepath:str,
 
     properties[label_path_field] = label_path
 
+    image_path = _download(image_url, basepath=basepath, progressbar=progressbar)
+    properties[image_path_field] = image_path
+
     # Update metadata set basaed on image Label.
     # FIXME: these MEEO metadata mappings are a bit chaotic
-    metaDict = createLblDict(label_path)
-    metaDict.update(map_meta_meeo(properties))
+    metaDict = _createLblDict(label_path)
+    metaDict.update(_map_meta_meeo(properties))
     properties.update(metaDict)
 
     new_feature = shallowcopy(feature)
@@ -84,7 +122,7 @@ def _download(url, basepath, progressbar=False):
     return file_path
 
 
-def createLblDict( filename ):
+def _createLblDict( filename ):
     """
     filename is a 'LBL' (PDS LBL) filename
     """
@@ -138,7 +176,7 @@ def createLblDict( filename ):
     _keys.sort()
     return {k:img_header[k] for k in _keys}
 
-def map_meta_meeo(props):
+def _map_meta_meeo(props):
     meta = {}
     meta['idFromProvider'] = props['id']
     meta['observationMode'] = props['type']

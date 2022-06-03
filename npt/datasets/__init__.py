@@ -74,6 +74,7 @@ del importlib, pkgutil, sys
 # }
 
 
+# FIXME: datasets should be an object "label:{sets}" (not a list/anonymous)
 _datasets = [
     {
         "id": "{target}/{mission}/{instrument}/{product_type}",
