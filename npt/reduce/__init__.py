@@ -230,14 +230,26 @@ def reduce_ctx(filename_init, map_projection, tmpdir):
 
 
 def reduce_hirise(filename_init, tmpdir):
-    return _jpeg2tiff(filename_init, tmpdir)
+    lbl_file = '.'.join(filename_init.split('.')[:-1] + ['LBL'])
+    assert os.path.exists(lbl_file), f"Expecting file {lbl_file}"
+
+    try:
+        from npt.utils import raster
+        f_lbl = shutil.copy(filename_init, tmpdir)
+        f_tif = _change_file_extension(f_lbl, 'tif')
+        raster.lbl2cog(f_lbl, f_tif, cog=True)
+
+    except Exception as err:
+        log.error(err)
+        raise err
+
+    else:
+        log.info("Processing finished, file '{}' created.".format(f_tif))
+
+    return f_tif
 
 
 def reduce_hrsc(filename_init, tmpdir):
-    return _jpeg2tiff(filename_init, tmpdir)
-
-
-def _jpeg2tiff(filename_init, tmpdir):
     try:
         # FORMAT (pds->isis)
         from npt.isis import format
