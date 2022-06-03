@@ -15,7 +15,8 @@ def ode(dataset: str, bbox: dict, match: str = 'intersect', bbox_ref:str='C0'):
             Latitude/longitude values range: (-90:90, -180:180)
     - match: how to consider overlapping matching footprints.
              Options are: 'intersect', 'contain'
-    - filter: Not implemented yet.
+    - bbox_ref: if 'C0' (default), 'bbox' longitudes are centered at 0 (-180:180),
+                if 'C180', 'bbox' longitudes are centered at 180 (0:360).
     """
     from npt.search._ode import ODE
 
