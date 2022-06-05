@@ -32,6 +32,9 @@ def from_geodataframe(gdf, basepath:str,
     new_gdf = gdf.__class__.from_features(new_gjson['features'])
     return new_gdf
 
+from_dataframe = from_geodataframe
+
+
 def from_geojson(geojson:dict, basepath:str,
                  image_url_field:str='image_url',
                  label_url_field:str='label_url',
@@ -77,7 +80,7 @@ def from_feature(feature:dict, basepath:str,
     geometry = deepcopy(feature['geometry'])
 
     image_url = properties.pop(image_url_field)
-    
+
     label_url = None
     if label_url_field in properties:
         label_url = properties.pop(label_url_field)

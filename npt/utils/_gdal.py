@@ -4,10 +4,10 @@ import osgeo
 from . import log
 
 COG_ARGS = (
-    '-of COG'
-    '-co BLOCKSIZE=512'
-    '-co COMPRESS=LZW'
-    '-co NUM_THREADS=2'
+    '-of COG',
+    '-co BLOCKSIZE=512',
+    '-co COMPRESS=LZW',
+    '-co NUM_THREADS=2',
     '-co GEOTIFF_VERSION=AUTO'
     )
 
@@ -37,7 +37,9 @@ def tif2cog(filein, fileout):
     """
     from osgeo import gdal
 
-    gdal.Translate(fileout, filein, options=COG_ARGS)
+    cog_args = ' '.join(COG_ARGS)
+    # print(cog_args)
+    gdal.Translate(fileout, filein, options=cog_args)
 
     return fileout
 
@@ -48,9 +50,10 @@ def lbl2cog(filein, fileout):
     """
     Transform the respective file from LABEL in filein to COG
     """
+    print(filein, fileout)
     return tif2cog(filein, fileout)
 
-    
+
 def virtual(filenames, output):
     """
     Makes a mosaic through GDAL virtual file + translate

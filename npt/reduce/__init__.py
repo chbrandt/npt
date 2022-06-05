@@ -22,6 +22,29 @@ def proj_planet2earth(filein, fileout):
     return warp(filein, fileout)
 
 
+def from_geodataframe(gdf, dataset:str, basepath:str="./data/reduced/",
+                 projection:str="sinusoidal",
+                 tmpdir:str=None, keep_tmpdir:bool=False,
+                 overwrite:bool=False):
+    """
+    Process all images in GeoDataFrame
+    """
+    import json
+    gjson_obj = json.loads(gdf.to_json())
+
+    new_gjson = from_geojson(gjson_obj, dataset, basepath,
+                             projection,
+                             tmpdir, keep_tmpdir,
+                             overwrite)
+    if not new_gjson:
+        return None
+
+    new_gdf = gdf.__class__.from_features(new_gjson['features'])
+    return new_gdf
+
+from_dataframe = from_geodataframe
+
+
 def from_geojson(geojson:dict, dataset:str, basepath:str="./data/reduced/",
                  projection:str="sinusoidal",
                  tmpdir:str=None, keep_tmpdir:bool=False,
@@ -235,9 +258,10 @@ def reduce_hirise(filename_init, tmpdir):
 
     try:
         from npt.utils import raster
-        f_lbl = shutil.copy(filename_init, tmpdir)
+        f_lbl = shutil.copy(lbl_file, tmpdir)
+        f_jp2 = shutil.copy(filename_init, tmpdir)
         f_tif = _change_file_extension(f_lbl, 'tif')
-        raster.lbl2cog(f_lbl, f_tif, cog=True)
+        raster.lbl2cog(f_lbl, f_tif)
 
     except Exception as err:
         log.error(err)

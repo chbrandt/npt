@@ -70,6 +70,7 @@ class ODE(object):
     Check 'npt.datasets.list' for the available/supported datasets
     """
     _result = None # Cache ODE query results
+    _ref_coords = 'C0'
 
     def __init__(self, dataset):
         """
@@ -83,7 +84,7 @@ class ODE(object):
         self.instr= instrument
         self.ptype = product_type
 
-    def query(self, bbox, match='intersect', bbox_ref='C0'):
+    def query_bbox(self, bbox, match='intersect', bbox_ref='C0'):
         """
         Return list of found products (in dictionaries)
 
@@ -125,6 +126,30 @@ class ODE(object):
             self._ref_coords = bbox_ref
 
         return self
+
+    query = query_bbox
+
+    def query_pid(self, product_id):
+        """
+        Return product_id if found
+        """
+        req = request_product(product_id,
+                                self.target,
+                                self.mission,
+                                self.instr,
+                                self.ptype)
+
+        result = req.json()
+        log.debug(f"ODE results: {result}")
+
+        if result['ODEResults']['Status'].lower() != 'success':
+            errmsg = result['ODEResults']['Error']
+            log.info('Request failed:', str(errmsg))
+        else:
+            self._result = result
+
+        return self
+
 
     def _count(self):
         """
@@ -214,7 +239,18 @@ def select_product(meta, filter_rule):
     return bool(_match) is present
 
 
-# USED by 'query_bbox'
+def request_product(product_id, target:str=None, host:str=None,
+                    instr:str=None, ptype:str=None):
+    """
+    Return results for 'product_id' (if found)
+    """
+    payload = _payload_request(target, host, instr, ptype)
+
+    payload.update({ 'pdsid': product_id })
+
+    return _request_payload(payload)
+
+
 def request_products(bbox:dict,
                      target:str=None, host:str=None,
                      instr:str=None, ptype:str=None,
@@ -232,17 +268,45 @@ def request_products(bbox:dict,
         'eastlon': <0:360>
     }
     """
-    api_endpoint = API_URL
+    payload = _payload_request(target, host, instr, ptype)
 
-    payload = dict(
-        query='product',
-        results='fmpc',
-        output='JSON',
-        loc='f',
+    payload.update(dict(
         minlat=bbox['minlat'],
         maxlat=bbox['maxlat'],
         westlon=bbox['westlon'],
         eastlon=bbox['eastlon']
+    ))
+
+    if contains:
+        payload.update({'loc':'o'})
+
+    return _request_payload(payload)
+
+
+def _request_payload(payload):
+    """
+    Return result from (GET) request 'payload'
+    """
+    return requests.get(API_URL, params=payload)
+
+
+def _payload_request(target:str, host:str, instr:str, ptype:str):
+    """
+    Assemble query-URL and (GET) request ODE server.
+    """
+    #    https://oderest.rsl.wustl.edu/live2/?
+    # target=mars&
+    # query=product&
+    # results=fpcm&
+    # output=XML&
+    # pt=RDRV11&
+    # iid=HiRISE&
+    # ihid=MRO&
+    payload = dict(
+        query='product',
+        results='fmpc',
+        output='JSON',
+        loc='f'
     )
     if target:
         payload.update({'target':target})
@@ -252,12 +316,9 @@ def request_products(bbox:dict,
         payload.update({'iid':instr})
         if ptype:
             payload.update({'pt':ptype})
-    if contains:
-        payload.update({'loc':'o'})
 
     #payload.update({'pretty':True})
-    res = requests.get(api_endpoint, params=payload)
-    return res
+    return payload
 
 
 # USED by 'parse_products'
