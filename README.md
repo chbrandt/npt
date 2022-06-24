@@ -1,4 +1,4 @@
-# NEANIAS Planets Tools
+# NEANIAS Planetary Tools
 
 This Python library provides the data/metadata processing tools running in
 NEANIAS/MEEO backend planetary data store. We are handling data provided
