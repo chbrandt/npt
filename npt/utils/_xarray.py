@@ -1,8 +1,7 @@
 import os
-import numpy as np
-import rasterio
-import rioxarray
-from rioxarray import merge as rxmerge
+# import rasterio
+# import rioxarray
+# from rioxarray import merge as rxmerge
 
 from . import log
 
@@ -33,6 +32,8 @@ def copy_(merged_data, new_data, merged_mask, new_mask,
     """
     Modify 'merged_data'
     """
+    import numpy as np
+
     mask = np.empty_like(merged_mask, dtype="bool")
     np.logical_or(merged_mask, new_mask, out=mask)
     np.logical_not(mask, out=mask)
@@ -82,6 +83,8 @@ def _mean(merged_data, new_data, mask):
     """
     Modify 'merged_data' with the average between merged_/new_data
     """
+    import numpy as np
+
     _stack = np.stack([merged_data, new_data])
     merged_data[mask] = np.mean(_stack, axis=0)[mask]
 
@@ -114,6 +117,7 @@ def merge(filenames, output, nodata=None, method:str='all'):
             https://github.com/rasterio/rasterio/blob/master/rasterio/merge.py
     """
     from rioxarray import merge as rxmerge
+    
     log.debug(f"Running '{merge.__name__}', from {__name__}")
 
     elements = []

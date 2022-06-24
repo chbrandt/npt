@@ -1,6 +1,3 @@
-import geopandas as gpd
-import shapely
-
 from .bbox import string_2_dict as bbox_string_2_dict
 
 from . import log
@@ -53,6 +50,9 @@ def inspect_decorator(func,args,kwargs):
 
 @logintrospect
 def geojson_2_geodataframe(records):
+    import geopandas as gpd
+    import shapely
+
     assert isinstance(records, list), "Expected a list [{}], instead got {}".format(type(records))
     gpdrecs = []
     for rec in records:
@@ -88,6 +88,8 @@ def products_2_geojson(products, filename):
     products: list of product records (from search_footprints)
     filename: GeoJSON filename for the output
     """
+    # import geopandas as gpd
+    # import shapely
 
     assert isinstance(products, list), "Expected 'products' to be a list"
     assert filename and filename.strip() != '', "Give me a valid filename"

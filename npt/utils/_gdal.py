@@ -1,5 +1,5 @@
 import os
-import osgeo
+# import osgeo
 
 from . import log
 
