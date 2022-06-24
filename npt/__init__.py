@@ -10,3 +10,6 @@ from . import reduce
 from . import mosaic
 from . import pipelines
 from . import utils
+
+from . import _version
+__version__ = _version.get_versions()['version']

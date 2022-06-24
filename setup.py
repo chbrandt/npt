@@ -1,5 +1,10 @@
+import versioneer
 from setuptools import setup
 
-setup(entry_points = {
+setup(
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
+    entry_points = {
         'console_scripts': ['npt=npt.cli:app'],
-    })
+    }
+)
