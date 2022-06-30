@@ -20,12 +20,24 @@ General tools:
 
 ## Install
 
-You can a package URL with `pip`, the latest NPT release for instance.
-Installing version 0.6.3:
-
+Installing the latest stable version on Pypi:
 ```bash
-$ pip install https://github.com/chbrandt/npt/archive/refs/tags/v0.6.3.tar.gz
+$ pip install npt
 ```
+
+Installing a specific version from Github:
+```
+bash
+$ pip install https://github.com/chbrandt/npt/archive/refs/tags/v0.7.2.zip
+```
+
+Or, for **developers**, directly from a local copy of this repository:
+```bash
+$ git clone https://github.com/chbrandt/npt.git
+$ cd npt
+$ pip install -e .
+```
+
 
 ## Python
 
@@ -170,16 +182,6 @@ browse_url                   https://hirise.lpl.arizona.edu/PDS/EXTRAS/RDR/...
 Name: 0, dtype: object
 
 >
-```
-
-## Developers
-
-To install NPT in _devel_ mode:
-
-```bash
-$ git clone https://github.com/chbrandt/npt.git
-$ cd npt
-$ pip install -e .
 ```
 
 
