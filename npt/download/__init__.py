@@ -64,7 +64,7 @@ def from_geojson(geojson:dict, basepath:str,
 
 
 #TODO: Add argument "data product type" to define what to download.
-def from_feature(feature:dict, basepath:str,
+def from_feature(feature:dict, basepath:str=None,
                  image_url_field:str='image_url',
                  label_url_field:str='label_url',
                  image_path_field:str='image_path',
@@ -75,6 +75,8 @@ def from_feature(feature:dict, basepath:str,
     """
     from ._pds import split_label_from_image
     from ._pds import write_feature_json
+
+    basepath = basepath or '.'
 
     properties = deepcopy(feature['properties'])
     geometry = deepcopy(feature['geometry'])
