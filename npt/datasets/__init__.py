@@ -77,11 +77,11 @@ del importlib, pkgutil, sys
 # FIXME: datasets should be an object "label:{sets}" (not a list/anonymous)
 _datasets = [
     {
-        "id": "{target}/{mission}/{instrument}/{product_type}",
         "target": "mars",
         "mission": "mro",
         "instrument": "ctx",
         "product_type": "edr",
+        "id": "{target}/{mission}/{instrument}/{product_type}",
         "descriptors": {
             'product_image': ('Description','PRODUCT DATA FILE WITH LABEL'),
         },
@@ -91,11 +91,11 @@ _datasets = [
     },
 
     {
-        "id": "{target}/{mission}/{instrument}/{product_type}",
         "target": "mars",
         "mission": "mro",
         "instrument": "hirise",
         "product_type": "rdrv11",
+        "id": "{target}/{mission}/{instrument}/{product_type}",
         "descriptors": {
             'product_image': ('Description', 'PRODUCT DATA FILE'),
             'product_label': ('Description', 'PRODUCT LABEL FILE'),
@@ -108,11 +108,11 @@ _datasets = [
     },
 
     {
-        "id": "{target}/{mission}/{instrument}/{product_type}",
         "target": "mars",
         "mission": "mex",
         "instrument": "hrsc",
         "product_type": "rdrv3",
+        "id": "{target}/{mission}/{instrument}/{product_type}",
         "descriptors": {
             'product_image': ('Description', 'PRODUCT DATA FILE'),
             'product_label': ('Description', 'PRODUCT LABEL FILE'),
@@ -124,11 +124,11 @@ _datasets = [
     },
 
     {
-        "id": "{target}/{mission}/{instrument}/{product_type}",
         "target": "mars",
         "mission": "mex",
         "instrument": "hrsc",
         "product_type": "refdr3",
+        "id": "{target}/{mission}/{instrument}/{product_type}",
         "descriptors": {
             'product_image': ('Description', 'PRODUCT DATA FILE'),
             'product_label': ('Description', 'PRODUCT LABEL FILE'),
