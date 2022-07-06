@@ -4,10 +4,13 @@ import os
 from . import log
 
 COG_ARGS = (
-    '-of COG',
-    '-co BLOCKSIZE=512',
+    '-of GTiff',
+    '-co TILED=YES',
+    #'-co COPY_SRC_OVERVIEWS=YES',
+    '-co BLOCKXSIZE=512',
+    '-co BLOCKYSIZE=512',
     '-co COMPRESS=LZW',
-    '-co NUM_THREADS=2',
+    '-co NUM_THREADS=4',
     '-co GEOTIFF_VERSION=AUTO'
     )
 
@@ -38,7 +41,7 @@ def tif2cog(filein, fileout):
     from osgeo import gdal
 
     cog_args = ' '.join(COG_ARGS)
-    # print(cog_args)
+    log.debug(f"Translating file {filein} to {fileout}")
     gdal.Translate(fileout, filein, options=cog_args)
 
     return fileout
@@ -50,7 +53,6 @@ def lbl2cog(filein, fileout):
     """
     Transform the respective file from LABEL in filein to COG
     """
-    print(filein, fileout)
     return tif2cog(filein, fileout)
 
 
