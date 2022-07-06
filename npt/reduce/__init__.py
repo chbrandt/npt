@@ -25,7 +25,8 @@ def proj_planet2earth(filein, fileout):
 def from_geodataframe(gdf, dataset:str, basepath:str="./data/reduced/",
                  projection:str="sinusoidal",
                  tmpdir:str=None, keep_tmpdir:bool=False,
-                 overwrite:bool=False):
+                 overwrite:bool=False,
+                 reduced_path_field='tiff_path'):
     """
     Process all images in GeoDataFrame
     """
@@ -35,7 +36,8 @@ def from_geodataframe(gdf, dataset:str, basepath:str="./data/reduced/",
     new_gjson = from_geojson(gjson_obj, dataset, basepath,
                              projection,
                              tmpdir, keep_tmpdir,
-                             overwrite)
+                             overwrite,
+                             reduced_path_field=reduced_path_field)
     if not new_gjson:
         return None
 
@@ -48,7 +50,8 @@ from_dataframe = from_geodataframe
 def from_geojson(geojson:dict, dataset:str, basepath:str="./data/reduced/",
                  projection:str="sinusoidal",
                  tmpdir:str=None, keep_tmpdir:bool=False,
-                 overwrite:bool=False):
+                 overwrite:bool=False,
+                 reduced_path_field='tiff_path'):
     """
     Process all images in geojson features
     """
@@ -61,11 +64,13 @@ def from_geojson(geojson:dict, dataset:str, basepath:str="./data/reduced/",
                                     projection=projection,
                                     tmpdir=tmpdir,
                                     keep_tmpdir=keep_tmpdir,
-                                    overwrite=overwrite)
+                                    overwrite=overwrite,
+                                    reduced_path_field=reduced_path_field)
         assert id(new_feature) != id(feature)
         # Write the image/product respective feature/metadata next to it
-        feature_filename = write_feature_json(new_feature)
-        print("Feature/metadata file '{}' written.".format(feature_filename))
+        feature_filename = write_feature_json(new_feature,
+                                              reference_path_field=reduced_path_field)
+        log.info("Feature/metadata file '{}' written.".format(feature_filename))
         new_features.append(new_feature)
 
     new_geojson = shallowcopy(geojson)
@@ -78,7 +83,8 @@ def from_geojson(geojson:dict, dataset:str, basepath:str="./data/reduced/",
 def from_feature(geojson_feature, dataset:str, basepath:str="./data/reduced/",
                  projection:str="sinusoidal",
                  tmpdir:str=None, keep_tmpdir:bool=False,
-                 overwrite:bool=False):
+                 overwrite:bool=False,
+                 reduced_path_field='tiff_path'):
     echo("Processing Feature: {!s}".format(geojson_feature))
     echo("Output go to: {!s}".format(basepath))
     feature = geojson_feature.copy()
@@ -86,7 +92,8 @@ def from_feature(geojson_feature, dataset:str, basepath:str="./data/reduced/",
     properties = _run_props(properties, dataset=dataset, basepath=basepath,
                             projection=projection,
                             tmpdir=tmpdir, keep_tmpdir=keep_tmpdir,
-                            overwrite=overwrite)
+                            overwrite=overwrite,
+                            reduced_path_field=reduced_path_field)
     feature['properties'] = properties
     echo("Post-processed feature: {!s}".format(feature))
     return feature
@@ -95,7 +102,8 @@ def from_feature(geojson_feature, dataset:str, basepath:str="./data/reduced/",
 def _run_props(properties:dict, dataset:str, basepath:str="./data/reduced/",
                  projection:str="sinusoidal",
                  tmpdir:str=None, keep_tmpdir:bool=False,
-                 overwrite:bool=False):
+                 overwrite:bool=False,
+                 reduced_path_field='tiff_path'):
     properties = properties.copy()
     image_filename = properties['image_path']
     tif = _run_file(image_filename,
@@ -119,7 +127,7 @@ def _run_props(properties:dict, dataset:str, basepath:str="./data/reduced/",
         except:
             assert isinstance(tif, str)
         # properties['image_path'] = tif
-        properties['tiff_path'] = tif
+        properties[reduced_path_field] = tif
         return properties
     else:
         log.error("Processing output is null. See the temp files.")
@@ -192,7 +200,7 @@ def _run_file(filename:str, dataset:str, basepath:str="./data/reduced/",
     except Exception as err:
         # log.error("File '{}','{}' could not be created".format(f_cub_out, f_tif_out))
         log.error("File '{}' could not be created".format(f_tif_out))
-        log.error("Temporary files, '{}' will remain. Remove them manually.".format(tmpdir))
+        # log.error("Temporary files, '{}' will remain. Remove them manually.".format(tmpdir))
         raise err
     finally:
         if not keep_tmpdir:
