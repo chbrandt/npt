@@ -1,4 +1,5 @@
 __pycache__/
 .ipynb_checkpoints/
-tmp/
-notebooks/data/
+npt.egg-info/
+dist/
+.DS_Store
