@@ -109,7 +109,7 @@ def from_feature(feature:dict, basepath:str=None,
 
     # Write the image/product respective feature/metadata next to it
     feature_filename = write_feature_json(new_feature)
-    print("Feature/metadata file '{}' written.".format(feature_filename))
+    log.info("Feature/metadata file '{}' written.".format(feature_filename))
 
     return new_feature
 

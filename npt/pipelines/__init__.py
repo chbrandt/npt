@@ -59,7 +59,8 @@ def download(feature, basepath, progressbar=False):
     return new_feature
 
 
-def reduce(feature, basepath, tmpdir=None, keep_tmpdir=True, overwrite=False):
+def reduce(feature, basepath, tmpdir=None, keep_tmpdir=True, overwrite=False,
+            reduced_path_field='tiff_path'):
     """
     Reduce image to "science-ready" level, return updated feature
 
@@ -85,7 +86,8 @@ def reduce(feature, basepath, tmpdir=None, keep_tmpdir=True, overwrite=False):
     dataset = '/'.join(['mars', props['mission'], props['inst'], props['type']]).lower()
 
     new_feature = from_feature(feature, dataset, basepath=basepath, projection=projection,
-                                tmpdir=tmpdir, keep_tmpdir=keep_tmpdir, overwrite=overwrite)
+                                tmpdir=tmpdir, keep_tmpdir=keep_tmpdir, overwrite=overwrite,
+                                reduced_path_field=reduced_path_field)
 
     return new_feature
 
