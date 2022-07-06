@@ -16,12 +16,12 @@ def filter(record: logging.LogRecord):
 
 
 log = logging.getLogger('npt')
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 log.set_level = log.setLevel
 
 handler = logging.StreamHandler()
 
-fmt="%(levelname)s: [%(name)s - %(package)s] %(funcName)s: %(message)s"
+fmt="%(levelname)s: [%(name)s - %(package)s] %(funcName)s(): %(message)s"
 formatter = logging.Formatter(fmt)
 handler.setFormatter(formatter)
 
