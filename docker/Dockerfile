@@ -1,6 +1,12 @@
-FROM chbrandt/isis3
+FROM gmap/isis3:gdal
 
-RUN pip install --upgrade pip && \
-    git clone -b neanias https://github.com/chbrandt/npt-neanias.git && \
-    cd npt-neanias && \
+# You can use a tag (v0.8rc, for example)
+ARG VERSION='master'
+
+RUN ls /opt || mkdir /opt 
+
+RUN cd /opt && \
+    git clone --branch $VERSION https://github.com/chbrandt/npt.git && \
+    cd npt && \
     pip install .
+
