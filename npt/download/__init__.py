@@ -83,6 +83,9 @@ def from_feature(feature:dict, basepath:str=None,
 
     image_url = properties.pop(image_url_field)
 
+    image_path = _download(image_url, basepath=basepath, progressbar=progressbar)
+    properties[image_path_field] = image_path
+
     label_url = None
     if label_url_field in properties:
         label_url = properties.pop(label_url_field)
@@ -93,9 +96,6 @@ def from_feature(feature:dict, basepath:str=None,
         label_path = split_label_from_image(image_path)
 
     properties[label_path_field] = label_path
-
-    image_path = _download(image_url, basepath=basepath, progressbar=progressbar)
-    properties[image_path_field] = image_path
 
     # Update metadata set basaed on image Label.
     # FIXME: these MEEO metadata mappings are a bit chaotic
